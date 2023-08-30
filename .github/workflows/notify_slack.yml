@@ -1,0 +1,150 @@
+name: notify_slack
+
+on:
+  workflow_call:
+    inputs:
+      test_type:
+        type: string
+        required: true
+      test_subtype:
+        type: string
+        required: true
+      be_url:
+        type: string
+        required: true
+      fe_url:
+        type: string
+        required: false
+        default: ""
+      slack_channel:
+        type: string
+        required: false
+        default: "sdp-test-report-dev"
+      workflow_name:
+        type: string
+        required: true
+      project:
+        description: Lagoon project name
+        type: string
+        required: true
+        default: ""
+      artifact_name:
+        description: Name of the report file
+        type: string
+        required: true
+jobs:
+  slack_notify:
+    name: sdp-test-report
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+    - uses: technote-space/workflow-conclusion-action@v3
+    - uses: actions/download-artifact@v2
+      with:
+        name: ${{ inputs.artifact_name }}
+    - name: prepare-report
+      run: |
+        if [[ -z $FE_BASE_URL ]]; then
+          echo TEST_ENVIRONMENTS="*BE URL:* $BE_BASE_URL" >> $GITHUB_ENV
+        else
+          echo TEST_ENVIRONMENTS="*BE URL:* $BE_BASE_URL \n *FE URL:* $FE_BASE_URL" >> $GITHUB_ENV
+        fi
+        if [ -f "report-url.txt" -a -s "report-url.txt" ]; then
+          echo "Workflow status is $WORKFLOW_CONCLUSION"
+          if [ "$WORKFLOW_CONCLUSION" = "success" ]; then
+            echo "REPORT_TEXT=:white_check_mark: *<$(cat report-url.txt)|Test Report>*" >> $GITHUB_ENV
+          else
+            echo "REPORT_TEXT=:bangbang: *<$(cat report-url.txt)|Test Report>*" >> $GITHUB_ENV
+          fi
+        else
+          echo "REPORT_TEXT=:crying_cat_face: No report found. Testing may have been skipped." >> $GITHUB_ENV
+        fi
+      env:
+        BE_BASE_URL: ${{ inputs.be_url }}
+        FE_BASE_URL: ${{ inputs.fe_url }}
+    - name: sdp-test-report-success
+      uses: slackapi/slack-github-action@v1.24.0
+      if: env.WORKFLOW_CONCLUSION == 'success'
+      env:
+        REPO_NAME: ${{ github.repository }}
+        REPO_URL: ${{ github.event.repository.html_url }}
+        JOB: ${{ github.workflow }}
+        LINK: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        BRANCH_LINK: ${{ github.head_ref }}
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        ARTIFACTS_URL: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+      with:
+        channel-id: ${{ inputs.slack_channel }}
+        payload: |
+          {
+                "attachments": [
+                  {
+                    "color": "#14b942",
+                    "blocks": [
+                      {
+                        "type": "section",
+                        "text": {
+                          "type": "mrkdwn",
+                          "text": "${{ inputs.test_type }} *<${{ github.event.repository.html_url }}|${{ github.repository }}> - Test <${{ env.LINK }}|${{ inputs.workflow_name }}> on ${{ env.BRANCH_LINK }} has passed.*"
+                        }
+                      },
+                      {
+                        "type": "context",
+                        "elements": [
+                          {
+                            "type": "mrkdwn",
+                            "text": "${{ env.TEST_ENVIRONMENTS }}"
+                          },
+                          {
+                            "type": "mrkdwn",
+                            "text": "${{ env.REPORT_TEXT }}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+    - name: sdp-test-report-fail
+      uses: slackapi/slack-github-action@v1.24.0
+      if: env.WORKFLOW_CONCLUSION != 'success'
+      with:
+          channel-id: ${{ inputs.slack_channel }}
+          payload: |
+            {
+              "attachments": [
+                {
+                  "color": "#f44336",
+                  "blocks": [
+                    {
+                      "type": "section",
+                      "text": {
+                        "type": "mrkdwn",
+                        "text": "${{ inputs.test_type }} *<${{ github.event.repository.html_url }}|${{ github.repository }}> - Test <${{ env.LINK }}|${{ inputs.workflow_name }}> on ${{ env.BRANCH_LINK }} has failed.*"
+                      }
+                    },
+                    {
+                      "type": "context",
+                      "elements": [
+                        {
+                          "type": "mrkdwn",
+                          "text": "${{ env.TEST_ENVIRONMENTS }}"
+                        },
+                        {
+                          "type": "mrkdwn",
+                          "text": "${{ env.REPORT_TEXT }}"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+      env:
+        REPO_NAME: ${{ github.repository }}
+        REPO_URL: ${{ github.event.repository.html_url }}
+        JOB: ${{ github.workflow }}
+        LINK: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        BRANCH_LINK: ${{ github.head_ref }}
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        ARTIFACTS_URL: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

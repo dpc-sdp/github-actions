@@ -1,0 +1,170 @@
+name: run_e2e_be
+
+on:
+    workflow_call:
+      inputs:
+        tags:
+          description: Cucumber test tags
+          type: string
+          required: true
+          default: ""
+        be_url:
+          description: The backend URL for testing
+          type: string
+          required: true
+          default: ""
+        project:
+          description: Lagoon project name
+          type: string
+          required: true
+          default: ""
+        browser:
+          description: Browser, default to headless Chrome.
+          type: string
+          default: "chrome"
+        retry:
+          description: Cucumber-js retry option
+          type: number
+          default: 2
+        parallel:
+          description: Cucumber-js parallel option
+          type: number
+          default: 1
+        app:
+          type: string
+          default: 'backend'
+        test_id:
+          type: string
+          required: true
+        test_type:
+          type: string
+          required: true
+        runner:
+          type: string
+          required: false
+          default: biggy
+        tag:
+          type: string
+          required: false
+          default: migration
+    
+
+jobs:
+  run_e2e_be:
+    name: run_e2e_be
+    runs-on: ${{ inputs.runner }}
+    container:
+      image: docker://sdptestautomation/e2e:${{ inputs.tag }}
+      credentials:
+        username: ${{ secrets.E2E_DOCKERHUB_USERNAME }}
+        password: ${{ secrets.E2E_DOCKERHUB_PASSWORD }}
+      options: --cpus 4 --memory 8g
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Get repo name
+        id: repo_name
+        run: echo "::set-output name=REPO_NAME::$(echo ${GITHUB_REPOSITORY#*/})"
+      -
+        name: Check browsers
+        run: |
+          node --version
+          google-chrome --version
+          printenv
+        env:
+          BE_ADMIN_USER: ${{ secrets.BE_ADMIN_USER }}
+          BE_ADMIN_PASS: ${{ secrets.BE_ADMIN_PASS }}
+          BE_APPROVER_USER: ${{ secrets.BE_APPROVER_USER }}
+          BE_APPROVER_PASS: ${{ secrets.BE_APPROVER_PASS }}
+          BE_EDITOR_USER: ${{ secrets.BE_EDITOR_USER }}
+          BE_EDITOR_PASS: ${{ secrets.BE_EDITOR_PASS }}
+      -
+        name: Set up Environment variables
+        run: |
+          echo 'BE_BASE_URL=${{ inputs.be_url }}' >> $GITHUB_ENV
+          echo 'PROJECT=${{ inputs.project }}' >> $GITHUB_ENV
+      -
+        name: Check test environment urls
+        run: |
+          echo $BE_BASE_URL
+          echo $PROJECT
+      -
+        name: "Wait up servers in case they are idle"
+        run: |
+          curl ${BE_BASE_URL} -s -S --max-time 1000 --write-out '%{http_code}' --output /dev/null;
+      -
+        name: Run Backend tests
+        run: |
+          cd /app
+          export TESTID=fixture
+          Xvfb :99 -screen 0 1920x1080x24 &
+          NIGHTWATCH_BROWSER="${{ inputs.browser }}" npm run cucumber:${{ inputs.app }} -- --tags "${{ inputs.tags }}" --retry "${{ inputs.retry }}" --parallel "${{ inputs.parallel }}"
+        env:
+          BE_ADMIN_USER: ${{ secrets.BE_ADMIN_USER }}
+          BE_ADMIN_PASS: ${{ secrets.BE_ADMIN_PASS }}
+          BE_APPROVER_USER: ${{ secrets.BE_APPROVER_USER }}
+          BE_APPROVER_PASS: ${{ secrets.BE_APPROVER_PASS }}
+          BE_EDITOR_USER: ${{ secrets.BE_EDITOR_USER }}
+          BE_EDITOR_PASS: ${{ secrets.BE_EDITOR_PASS }}
+      - 
+        name: Upload test results
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: test-results
+          path: /app/reports/
+      - 
+        name: Upload chromedriver log
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: chromedriver-log
+          path: /app/logs/
+      - 
+        name: 'Add failed test result status to CMS'
+        if: |
+          failure()
+        run: |
+          cd /app
+          TEST_STATUS=fail node -r ts-node/register -r tsconfig-paths/register scripts/addTestResult.ts
+        env:
+          BE_ADMIN_USER: ${{ secrets.BE_ADMIN_USER }}
+          BE_ADMIN_PASS: ${{ secrets.BE_ADMIN_PASS }}
+          BE_APPROVER_USER: ${{ secrets.BE_APPROVER_USER }}
+          BE_APPROVER_PASS: ${{ secrets.BE_APPROVER_PASS }}
+          BE_EDITOR_USER: ${{ secrets.BE_EDITOR_USER }}
+          BE_EDITOR_PASS: ${{ secrets.BE_EDITOR_PASS }}
+      - 
+        name: 'Add succeeded test result status to CMS'
+        if: |
+          success()
+        run: |
+          cd /app
+          TEST_STATUS=pass node -r ts-node/register -r tsconfig-paths/register scripts/addTestResult.ts
+        env:
+          BE_ADMIN_USER: ${{ secrets.BE_ADMIN_USER }}
+          BE_ADMIN_PASS: ${{ secrets.BE_ADMIN_PASS }}
+          BE_APPROVER_USER: ${{ secrets.BE_APPROVER_USER }}
+          BE_APPROVER_PASS: ${{ secrets.BE_APPROVER_PASS }}
+          BE_EDITOR_USER: ${{ secrets.BE_EDITOR_USER }}
+          BE_EDITOR_PASS: ${{ secrets.BE_EDITOR_PASS }}
+      - 
+        name: Store Cucumber Cloud test report URL
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: report-url
+          path: /app/reports/report-url.txt
+  notify_slack:
+    uses: ./.github/workflows/notify_slack.yml
+    if: always()
+    needs: [run_e2e_be]
+    secrets: inherit
+    with:
+      workflow_name: "E2E BE"
+      test_type: ":nightwatch:"
+      test_subtype: ":nightwatch:"
+      artifact_name: "report-url"
+      fe_url: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.fe_url }}
+      be_url: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.be_url }}
+      project: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.e2e_project }}

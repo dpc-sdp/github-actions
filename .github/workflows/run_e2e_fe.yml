@@ -1,0 +1,150 @@
+name: run_e2e_fe
+
+on:
+  workflow_call:
+    inputs:
+      tags:
+        description: Cucumber test tags
+        type: string
+        required: true
+        default: ""
+      be_url:
+        description: The backend URL for testing
+        type: string
+        required: true
+        default: ""
+      fe_url:
+        description: The frontend URL for testing
+        type: string
+        required: true
+        default: ""
+      project:
+        description: Lagoon project name
+        type: string
+        required: true
+        default: ""
+      browser:
+        description: Browser, default to headless Chrome.
+        type: string
+        default: "chrome"
+      retry:
+        description: Cucumber-js retry option
+        type: number
+        default: 2
+      parallel:
+        description: Cucumber-js parallel option
+        type: number
+        default: 4
+      eyes_appname:
+        description: The appname used to compare against in Appltiools
+        type: string
+        default: "sdp-core-v1"
+      app:
+        type: string
+        default: 'frontend'
+      failfast:
+        type: string
+        default: ''
+      test_id:
+        type: string
+        required: true
+      test_type:
+        type: string
+        required: true
+      runner:
+        type: string
+        required: false
+        default: biggy
+      tag:
+        type: string
+        required: false
+        default: migration
+
+
+jobs:
+  run_e2e_fe:
+    name: run_e2e_fe
+    runs-on: ${{ inputs.runner }}
+    container:
+      image: docker://sdptestautomation/e2e:${{ inputs.tag }}
+      credentials:
+        username: ${{ secrets.E2E_DOCKERHUB_USERNAME }}
+        password: ${{ secrets.E2E_DOCKERHUB_PASSWORD }}
+      options: --cpus 4 --memory 8g
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Get repo name
+        id: repo_name
+        run: echo "::set-output name=REPO_NAME::$(echo ${GITHUB_REPOSITORY#*/})"
+      -
+        name: Check browsers
+        run: |
+          node --version
+          google-chrome --version
+      -
+        name: Set up Environment variables
+        run: |
+          echo 'BE_BASE_URL=${{ inputs.be_url }}' >> $GITHUB_ENV
+          echo 'FE_BASE_URL=${{ inputs.fe_url }}' >> $GITHUB_ENV
+          echo 'PROJECT=${{ inputs.project }}' >> $GITHUB_ENV
+          echo 'EYES_APPNAME=${{ inputs.eyes_appname }}' >> $GITHUB_ENV
+      -
+        name: Check test environment urls
+        run: |
+          echo $BE_BASE_URL
+          echo $FE_BASE_URL
+          echo $PROJECT
+      -
+        name: "Wait up servers in case they are idle"
+        run: |
+          curl ${BE_BASE_URL} -s -S --max-time 1000 --write-out '%{http_code}' --output /dev/null;
+          curl ${FE_BASE_URL} -s -S --max-time 1000 --write-out '%{http_code}' --output /dev/null;
+      -
+        name: run e2e test
+        run: |
+          cd /app
+          export TESTID=${{ inputs.test_id }}
+          Xvfb :99 -screen 0 1920x1080x24 &
+          NIGHTWATCH_BROWSER="${{ inputs.browser }}" npm run cucumber:${{ inputs.app }} -- --tags "${{ inputs.tags }}" --retry "${{ inputs.retry }}" --parallel "${{ inputs.parallel }}"
+        env:
+          CIRCLE_BRANCH: ${{ github.head_ref }}
+          EYES_APPNAME: ${{ inputs.eyes_appname }}
+          APPLITOOLS_API_KEY: ${{ secrets.APPLITOOLS_API_KEY }}
+          CUCUMBER_PUBLISH_TOKEN: ${{ secrets.CUCUMBER_PUBLISH_TOKEN }}
+          NIGHTWATCH_PARALLEL: false
+          NIGHTWATCH_HEADLESS: true
+      -
+        name: run e2e visual regression test
+        if: always()
+        run: |
+          cd /app
+          export TESTID=${{ inputs.test_id }}
+          NIGHTWATCH_BROWSER="${{ inputs.browser }}" npm run cucumber:frontend-visual -- --tags "@landing-page and @demo-content and @visual-regression-minimal" --exit
+        env:
+          CIRCLE_BRANCH: ${{ github.head_ref }}
+          EYES_APPNAME: ${{ inputs.eyes_appname }}
+          APPLITOOLS_API_KEY: ${{ secrets.APPLITOOLS_API_KEY }}
+          CUCUMBER_PUBLISH_TOKEN: ${{ secrets.CUCUMBER_PUBLISH_TOKEN }}
+          NIGHTWATCH_PARALLEL: false
+          NIGHTWATCH_HEADLESS: true
+      - 
+        name: Store Cucumber Cloud test report URL
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: report-url
+          path: /app/reports/report-url.txt
+  notify_slack:
+    uses: ./.github/workflows/notify_slack.yml
+    if: always()
+    needs: [run_e2e_fe]
+    secrets: inherit
+    with:
+      workflow_name: "E2E FE"
+      test_type: ":nightwatch:"
+      test_subtype: ":nightwatch:"
+      artifact_name: "report-url"
+      fe_url: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.fe_url }}
+      be_url: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.be_url }}
+      project: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.e2e_project }}
