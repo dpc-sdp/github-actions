@@ -58,7 +58,6 @@ jobs:
       credentials:
         username: ${{ secrets.E2E_DOCKERHUB_USERNAME }}
         password: ${{ secrets.E2E_DOCKERHUB_PASSWORD }}
-      options: --cpus 4 --memory 8g
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
