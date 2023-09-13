@@ -47,7 +47,17 @@ on:
           type: string
           required: false
           default: migration
-    
+
+env:
+  BE_ADMIN_USER: ${{ secrets.BE_ADMIN_USER }}
+  BE_ADMIN_PASS: ${{ secrets.BE_ADMIN_PASS }}
+  BE_APPROVER_USER: ${{ secrets.BE_APPROVER_USER }}
+  BE_APPROVER_PASS: ${{ secrets.BE_APPROVER_PASS }}
+  BE_EDITOR_USER: ${{ secrets.BE_EDITOR_USER }}
+  BE_EDITOR_PASS: ${{ secrets.BE_EDITOR_PASS }}
+  BROWSERSTACK_USER: ${{ secrets.BROWSERSTACK_USER }}
+  BROWSERSTACK_KEY: ${{ secrets.BROWSERSTACK_KEY }}
+  NIGHTWATCH_OUTPUT: true
 
 jobs:
   run_e2e_be:
@@ -70,13 +80,6 @@ jobs:
           node --version
           google-chrome --version
           printenv
-        env:
-          BE_ADMIN_USER: ${{ secrets.BE_ADMIN_USER }}
-          BE_ADMIN_PASS: ${{ secrets.BE_ADMIN_PASS }}
-          BE_APPROVER_USER: ${{ secrets.BE_APPROVER_USER }}
-          BE_APPROVER_PASS: ${{ secrets.BE_APPROVER_PASS }}
-          BE_EDITOR_USER: ${{ secrets.BE_EDITOR_USER }}
-          BE_EDITOR_PASS: ${{ secrets.BE_EDITOR_PASS }}
       -
         name: Set up Environment variables
         run: |
@@ -98,13 +101,6 @@ jobs:
           export TESTID=fixture
           Xvfb :99 -screen 0 1920x1080x24 &
           NIGHTWATCH_BROWSER="${{ inputs.browser }}" npm run cucumber:${{ inputs.app }} -- --tags "${{ inputs.tags }}" --retry "${{ inputs.retry }}" --parallel "${{ inputs.parallel }}"
-        env:
-          BE_ADMIN_USER: ${{ secrets.BE_ADMIN_USER }}
-          BE_ADMIN_PASS: ${{ secrets.BE_ADMIN_PASS }}
-          BE_APPROVER_USER: ${{ secrets.BE_APPROVER_USER }}
-          BE_APPROVER_PASS: ${{ secrets.BE_APPROVER_PASS }}
-          BE_EDITOR_USER: ${{ secrets.BE_EDITOR_USER }}
-          BE_EDITOR_PASS: ${{ secrets.BE_EDITOR_PASS }}
       - 
         name: Upload test results
         uses: actions/upload-artifact@v2
@@ -126,13 +122,6 @@ jobs:
         run: |
           cd /app
           TEST_STATUS=fail node -r ts-node/register -r tsconfig-paths/register scripts/addTestResult.ts
-        env:
-          BE_ADMIN_USER: ${{ secrets.BE_ADMIN_USER }}
-          BE_ADMIN_PASS: ${{ secrets.BE_ADMIN_PASS }}
-          BE_APPROVER_USER: ${{ secrets.BE_APPROVER_USER }}
-          BE_APPROVER_PASS: ${{ secrets.BE_APPROVER_PASS }}
-          BE_EDITOR_USER: ${{ secrets.BE_EDITOR_USER }}
-          BE_EDITOR_PASS: ${{ secrets.BE_EDITOR_PASS }}
       - 
         name: 'Add succeeded test result status to CMS'
         if: |
@@ -140,13 +129,6 @@ jobs:
         run: |
           cd /app
           TEST_STATUS=pass node -r ts-node/register -r tsconfig-paths/register scripts/addTestResult.ts
-        env:
-          BE_ADMIN_USER: ${{ secrets.BE_ADMIN_USER }}
-          BE_ADMIN_PASS: ${{ secrets.BE_ADMIN_PASS }}
-          BE_APPROVER_USER: ${{ secrets.BE_APPROVER_USER }}
-          BE_APPROVER_PASS: ${{ secrets.BE_APPROVER_PASS }}
-          BE_EDITOR_USER: ${{ secrets.BE_EDITOR_USER }}
-          BE_EDITOR_PASS: ${{ secrets.BE_EDITOR_PASS }}
       - 
         name: Store Cucumber Cloud test report URL
         uses: actions/upload-artifact@v2
