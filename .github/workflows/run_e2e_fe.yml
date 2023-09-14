@@ -127,10 +127,10 @@ jobs:
     needs: [run_e2e_fe]
     secrets: inherit
     with:
-      workflow_name: "E2E FE"
+      workflow_name: ${{ github.job_id }}
       test_type: ":nightwatch:"
       test_subtype: ":nightwatch:"
       artifact_name: "report-url"
-      fe_url: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.fe_url }}
-      be_url: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.be_url }}
-      project: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.e2e_project }}
+      fe_url: ${{ inputs.fe_url }}
+      be_url: ${{ inputs.be_url }}
+      project: ${{ inputs.project }}
