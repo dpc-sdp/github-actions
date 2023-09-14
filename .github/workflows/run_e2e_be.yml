@@ -146,5 +146,5 @@ jobs:
       test_type: ":nightwatch:"
       test_subtype: ":nightwatch:"
       artifact_name: "report-url"
-      fe_url: ${{ inputs.fe_url }}
+      be_url: ${{ inputs.be_url }}
       project: ${{ inputs.project }}
