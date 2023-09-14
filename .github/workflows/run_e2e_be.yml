@@ -47,6 +47,10 @@ on:
           type: string
           required: false
           default: migration
+        slack_channel:
+          type: string
+          required: false
+          default: "sdp-test-report-dev"
 
 env:
   # Test users
@@ -152,3 +156,4 @@ jobs:
       artifact_name: "report-url"
       be_url: ${{ inputs.be_url }}
       project: ${{ inputs.project }}
+      slack_channel: ${{ inputs.slack_channel }}
