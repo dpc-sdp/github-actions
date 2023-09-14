@@ -49,6 +49,7 @@ on:
           default: migration
 
 env:
+  TESTID: ${{ inputs.test_id }}
   BE_ADMIN_USER: ${{ secrets.BE_ADMIN_USER }}
   BE_ADMIN_PASS: ${{ secrets.BE_ADMIN_PASS }}
   BE_APPROVER_USER: ${{ secrets.BE_APPROVER_USER }}
@@ -98,7 +99,6 @@ jobs:
         name: Run Backend tests
         run: |
           cd /app
-          export TESTID=${{ inputs.test_id }}
           Xvfb :99 -screen 0 1920x1080x24 &
           NIGHTWATCH_BROWSER="${{ inputs.browser }}" npm run cucumber:${{ inputs.app }} -- --tags "${{ inputs.tags }}" --retry "${{ inputs.retry }}" --parallel "${{ inputs.parallel }}"
       - 

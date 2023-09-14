@@ -61,6 +61,7 @@ on:
         default: migration
 
 env:
+  TESTID: ${{ inputs.test_id }}
   BROWSERSTACK_USER: ${{ secrets.BROWSERSTACK_USER }}
   BROWSERSTACK_KEY: ${{ secrets.BROWSERSTACK_KEY }}
   NIGHTWATCH_OUTPUT: true
@@ -111,7 +112,6 @@ jobs:
         name: run e2e test
         run: |
           cd /app
-          export TESTID=${{ inputs.test_id }}
           Xvfb :99 -screen 0 1920x1080x24 &
           NIGHTWATCH_BROWSER="${{ inputs.browser }}" npm run cucumber:${{ inputs.app }} -- --tags "${{ inputs.tags }}" --retry "${{ inputs.retry }}" --parallel "${{ inputs.parallel }}"
       - 
