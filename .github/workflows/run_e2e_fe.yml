@@ -3,6 +3,11 @@ name: run_e2e_fe
 on:
   workflow_call:
     inputs:
+      name:
+        description: Test suite name
+        type: string
+        required: false
+        default: "FE E2E"
       tags:
         description: Cucumber test tags
         type: string
@@ -56,6 +61,7 @@ on:
         required: false
         default: biggy
       tag:
+        description: SDP testing Docker image tag
         type: string
         required: false
         default: migration
@@ -140,7 +146,7 @@ jobs:
     needs: [run_e2e_fe]
     secrets: inherit
     with:
-      workflow_name: ${{ github.job_id }}
+      workflow_name: ${{ inputs.name }}
       test_type: ":nightwatch:"
       test_subtype: ":nightwatch:"
       artifact_name: "report-url"
