@@ -150,7 +150,7 @@ jobs:
     needs: [run_e2e_be]
     secrets: inherit
     with:
-      workflow_name: ${{ github.job_id }}
+      workflow_name: ${{ github.job_id.name }}
       test_type: ":nightwatch:"
       test_subtype: ":nightwatch:"
       artifact_name: "report-url"
