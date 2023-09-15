@@ -3,6 +3,11 @@ name: run_e2e_fe
 on:
   workflow_call:
     inputs:
+      name:
+        description: Test suite name
+        type: string
+        required: false
+        default: "FE E2E"
       tags:
         description: Cucumber test tags
         type: string
@@ -56,19 +61,33 @@ on:
         required: false
         default: biggy
       tag:
+        description: SDP testing Docker image tag
         type: string
         required: false
         default: migration
+      slack_channel:
+        type: string
+        required: false
+        default: "sdp-test-report-dev"
 
 env:
-  TESTID: ${{ inputs.test_id }}
+  # Test users
+  BE_ADMIN_USER: ${{ secrets.BE_ADMIN_USER }}
+  BE_ADMIN_PASS: ${{ secrets.BE_ADMIN_PASS }}
+  BE_APPROVER_USER: ${{ secrets.BE_APPROVER_USER }}
+  BE_APPROVER_PASS: ${{ secrets.BE_APPROVER_PASS }}
+  BE_EDITOR_USER: ${{ secrets.BE_EDITOR_USER }}
+  BE_EDITOR_PASS: ${{ secrets.BE_EDITOR_PASS }}
+  # Keys
   BROWSERSTACK_USER: ${{ secrets.BROWSERSTACK_USER }}
   BROWSERSTACK_KEY: ${{ secrets.BROWSERSTACK_KEY }}
+  APPLITOOLS_API_KEY: ${{ secrets.APPLITOOLS_API_KEY }}
+  CUCUMBER_PUBLISH_TOKEN: ${{ secrets.CUCUMBER_PUBLISH_TOKEN }}
+  # Settings
+  TESTID: ${{ inputs.test_id }}
   NIGHTWATCH_OUTPUT: true
   CIRCLE_BRANCH: ${{ github.head_ref }}
   EYES_APPNAME: ${{ inputs.eyes_appname }}
-  APPLITOOLS_API_KEY: ${{ secrets.APPLITOOLS_API_KEY }}
-  CUCUMBER_PUBLISH_TOKEN: ${{ secrets.CUCUMBER_PUBLISH_TOKEN }}
 
 jobs:
   run_e2e_fe:
@@ -127,10 +146,11 @@ jobs:
     needs: [run_e2e_fe]
     secrets: inherit
     with:
-      workflow_name: ${{ github.job_id }}
+      workflow_name: ${{ inputs.name }}
       test_type: ":nightwatch:"
       test_subtype: ":nightwatch:"
       artifact_name: "report-url"
       fe_url: ${{ inputs.fe_url }}
       be_url: ${{ inputs.be_url }}
       project: ${{ inputs.project }}
+      slack_channel: ${{ inputs.slack_channel }}
