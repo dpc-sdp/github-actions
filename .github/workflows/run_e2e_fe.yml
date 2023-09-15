@@ -86,7 +86,8 @@ env:
   # Settings
   TESTID: ${{ inputs.test_id }}
   NIGHTWATCH_OUTPUT: true
-  CIRCLE_BRANCH: ${{ github.ref_name }}
+  # CIRCLE_BRANCH: ${{ github.ref_name }}
+  CIRCLE_BRANCH: v2-develop
   EYES_APPNAME: ${{ inputs.eyes_appname }}
 
 jobs:
