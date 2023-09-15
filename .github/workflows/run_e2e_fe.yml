@@ -86,7 +86,7 @@ env:
   # Settings
   TESTID: ${{ inputs.test_id }}
   NIGHTWATCH_OUTPUT: true
-  CIRCLE_BRANCH: ${{ github.head_ref }}
+  CIRCLE_BRANCH: ${{ github.ref_name }}
   EYES_APPNAME: ${{ inputs.eyes_appname }}
 
 jobs:
@@ -109,6 +109,7 @@ jobs:
         run: |
           node --version
           google-chrome --version
+          printenv
       -
         name: Set up Environment variables
         run: |
@@ -122,6 +123,7 @@ jobs:
           echo $BE_BASE_URL
           echo $FE_BASE_URL
           echo $PROJECT
+          echo $CIRCLE_BRANCH
       -
         name: "Wait up servers in case they are idle"
         run: |

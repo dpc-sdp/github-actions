@@ -70,7 +70,7 @@ jobs:
         REPO_URL: ${{ github.event.repository.html_url }}
         JOB: ${{ github.workflow }}
         LINK: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        BRANCH_LINK: ${{ github.head_ref }}
+        BRANCH_LINK: ${{ github.ref_name }}
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         ARTIFACTS_URL: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
       with:
@@ -145,6 +145,6 @@ jobs:
         REPO_URL: ${{ github.event.repository.html_url }}
         JOB: ${{ github.workflow }}
         LINK: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        BRANCH_LINK: ${{ github.head_ref }}
+        BRANCH_LINK: ${{ github.ref_name }}
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         ARTIFACTS_URL: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
