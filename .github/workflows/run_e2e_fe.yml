@@ -123,7 +123,6 @@ jobs:
           echo $BE_BASE_URL
           echo $FE_BASE_URL
           echo $PROJECT
-          echo $GITHUB_REF_NAME
           echo $CIRCLE_BRANCH
       -
         name: "Wait up servers in case they are idle"
