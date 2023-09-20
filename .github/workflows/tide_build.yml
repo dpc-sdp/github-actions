@@ -1,0 +1,27 @@
+name: tide_build
+
+on: workflow_call
+
+jobs:
+  build_tide:
+    name: tide_build
+    runs-on: biggy
+    container:
+      image: ghcr.io/dpc-sdp/bay/ci-builder:5.x
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      # GitHub Actions does not support cloning to a custom path.
+      - name: Copy repo
+        run: |
+          cp -R /__w/${GITHUB_REPOSITORY#*/}/${GITHUB_REPOSITORY#*/} /app
+      - name: List /app directory
+        run: |
+          ls -a /app
+      - name: Run build script
+        run: |
+          /app/.circleci/build.sh
+      - name: Run test script
+        if: always()
+        run: |
+          /app/.circleci/test.sh
