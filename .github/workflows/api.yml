@@ -63,4 +63,17 @@ jobs:
           else
             echo "==> No Postman API test collection is found. Skip the test."
           fi
-      
+      - name: Run custom Newman API tests
+        if: always()
+        run: |
+          if [ -e tests/newman/custom.collection.json ]
+          then
+            case ${GITHUB_REF_NAME} in
+              standby|production)
+                newman run tests/newman/custom.collection.json --folder default -e tests/newman/tide.environment.json --env-var "host=${BE_BASE_URL}" --env-var "branch=${GITHUB_REF_NAME}" --color on -r htmlextra --reporter-htmlextra-export ./report/custom.collection.report.html;;
+              *)
+                newman run tests/newman/custom.collection.json -e tests/newman/tide.environment.json --env-var "host=${BE_BASE_URL}" --env-var "branch=${GITHUB_REF_NAME}" --color on -r htmlextra --reporter-htmlextra-export ./report/custom.collection.report.html;;
+            esac
+          else
+            echo "==> No Postman API test collection is found. Skip the test."
+          fi
