@@ -1,10 +1,10 @@
-name: tide_build
+name: export_config
 
 on: workflow_call
 
 jobs:
   build_tide:
-    name: tide_build
+    name: export_config
     runs-on: biggy
     container:
       image: ghcr.io/dpc-sdp/bay/ci-builder:5.x
@@ -15,10 +15,6 @@ jobs:
       - name: Copy repo
         run: |
           cp -R /__w/${GITHUB_REPOSITORY#*/}/${GITHUB_REPOSITORY#*/} /app
-      - name: Run build script
+      - name: Run export script
         run: |
-          /app/.circleci/build.sh
-      - name: Run test script
-        if: always()
-        run: |
-          /app/.circleci/test.sh
+          /app/.circleci/export-config.sh

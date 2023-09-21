@@ -1,0 +1,59 @@
+name: api
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: SDP testing Docker image tag
+        type: string
+        required: false
+        default: migration
+      be_url:
+        description: The backend URL for testing
+        type: string
+        required: true
+        default: "https://nginx-php.pr-1581.content-vic.sdp4.sdp.vic.gov.au/"
+
+jobs:
+  api:
+    name: api
+    runs-on: biggy
+    container:
+      image: ghcr.io/dpc-sdp/bay/ci-builder:5.x
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      # GitHub Actions does not support cloning to a custom path.
+      - name: Copy repo
+        run: |
+          cp -R /__w/${GITHUB_REPOSITORY#*/}/${GITHUB_REPOSITORY#*/} /app
+      - name: Set up Environment variables
+        run: |
+          echo 'BE_BASE_URL=${{ inputs.be_url }}' >> $GITHUB_ENV
+      - name: Wake test target
+        run: |
+          curl ${BE_BASE_URL} -s -S --max-time 1000 --write-out '%{http_code}' --output /dev/null;
+      - name: Install dependencies
+        run: |
+          npm install -g newman newman-reporter-htmlextra
+          apk add jq
+      - name: Run core Newman API tests
+        run: |
+          cd /app
+          if [ -e tests/newman/tide.collection.json ]
+          then
+            if [[ ${TEST_NEWMAN_DISABLE_CORE} == true ]]
+            then
+              echo "==> Core Tests are disabled by env var TEST_NEWMAN_DISABLE_CORE. Skip the test."
+            else
+              case ${CIRCLE_BRANCH} in
+                standby|production)
+                  newman run tests/newman/tide.collection.json --folder default -e tests/newman/tide.environment.json --env-var "host=${BE_BASE_URL}" --env-var "branch=${GITHUB_REF_NAME}" --color on -r htmlextra --reporter-htmlextra-export ./report/tide.collection.report.html;;
+                *)
+                  newman run tests/newman/tide.collection.json -e tests/newman/tide.environment.json --env-var "host=${BE_BASE_URL}" --env-var "branch=${GITHUB_REF_NAME}" --color on -r htmlextra --reporter-htmlextra-export ./report/tide.collection.report.html;;
+              esac
+            fi
+          else
+            echo "==> No Postman API test collection is found. Skip the test."
+          fi
+      
