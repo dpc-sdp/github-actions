@@ -12,7 +12,14 @@ on:
         description: The backend URL for testing
         type: string
         required: true
-        default: "https://nginx-php.pr-1581.content-vic.sdp4.sdp.vic.gov.au/"
+      disable_core:
+        description: Set the TEST_NEWMAN_DISABLE_CORE env var
+        type: boolean
+        required: false
+        default: false
+
+env:
+  TEST_NEWMAN_DISABLE_CORE: ${{ inputs.disable_core }}
 
 jobs:
   api:
