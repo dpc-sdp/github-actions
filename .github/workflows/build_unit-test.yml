@@ -3,9 +3,9 @@ name: Reusable CI/CD Workflow
 on:
   workflow_call:
     secrets:
-      e2e_dockerhub_username:
+      E2E_DOCKERHUB_USERNAME:
         required: true
-      e2e_dockerhub_password:
+      E2E_DOCKERHUB_PASSWORD:
         description: 'DockerHub password required for logging into the container registry'
         required: true
 
@@ -15,8 +15,8 @@ jobs:
     container:
       image: docker://cypress/browsers:node14.7.0-chrome84
       credentials:
-        username: ${{ secrets.e2e_dockerhub_username }}
-        password: ${{ secrets.e2e_dockerhub_password }}
+        username: ${{ secrets.E2E_DOCKERHUB_USERNAME }}
+        password: ${{ secrets.E2E_DOCKERHUB_PASSWORD }}
 
     steps:
     - name: actions/checkout
@@ -69,8 +69,8 @@ jobs:
     container:
       image: docker://cypress/browsers:node14.7.0-chrome84
       credentials:
-        username: ${{ secrets.e2e_dockerhub_username }}
-        password: ${{ secrets.e2e_dockerhub_password }}
+        username: ${{ secrets.E2E_DOCKERHUB_USERNAME }}
+        password: ${{ secrets.E2E_DOCKERHUB_PASSWORD }}
 
 
     steps:
