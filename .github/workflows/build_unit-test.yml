@@ -1,0 +1,114 @@
+name: Reusable CI/CD Workflow
+
+on:
+  workflow_call:
+    inputs:
+      e2e_dockerhub_username:
+        required: true
+        type: string
+    secrets:
+      e2e_dockerhub_password:
+        description: 'DockerHub password required for logging into the container registry'
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: docker://cypress/browsers:node14.7.0-chrome84
+      credentials:
+        username: ${{ inputs.e2e_dockerhub_username }}
+        password: ${{ secrets.e2e_dockerhub_password }}
+
+    steps:
+    - name: actions/checkout
+      uses: actions/checkout@v2
+
+
+    - name: Restore Cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.npm
+          ~/.cache
+          node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-${{ github.ref }}
+          ${{ runner.os }}-node-
+
+
+    - name: Install Dependencies
+      run: npm ci
+
+
+    - name: Saving Cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.npm
+          ~/.cache
+          node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+
+    - name: Build
+      run: node --max-old-space-size=2048 node_modules/nuxt/bin/nuxt.js build
+
+
+    - name: Compress build artifacts
+      run: tar -czf build-artifacts.tar.gz .nuxt
+
+    - name: Archive build artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: build-artifacts
+        path: build-artifacts.tar.gz
+
+  unit_test:
+    needs: build
+    runs-on: ubuntu-latest
+    container:
+      image: docker://cypress/browsers:node14.7.0-chrome84
+      credentials:
+        username: ${{ inputs.e2e_dockerhub_username }}
+        password: ${{ secrets.e2e_dockerhub_password }}
+
+
+    steps:
+    - name: actions/checkout
+      uses: actions/checkout@v2
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: build-artifacts
+
+    - name: Extract build artifacts
+      run: tar -xzf build-artifacts.tar.gz
+
+    - name: Restore Cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.npm
+          ~/.cache
+          node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-${{ github.ref }}
+          ${{ runner.os }}-node-
+
+    - name: Lint code
+      run: npm run lint 
+
+    - name: Unit tests
+      run: npm run test:unit --ci --runInBand --reporters=default --reporters=jest-junit
+      env:
+        JEST_JUNIT_OUTPUT_DIR: test-results/unit/
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v2
+      with:
+        name: test-results
+        path: test-results
