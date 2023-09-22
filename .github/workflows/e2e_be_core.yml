@@ -55,3 +55,5 @@ jobs:
         be_url: ${{ inputs.be_url }}
         project: ${{ inputs.project }}
         browser: ${{ inputs.browser }}
+        test_id: "e2e_be"
+        test_type: "fixture"
