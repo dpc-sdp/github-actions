@@ -15,7 +15,7 @@ jobs:
     container:
       image: docker://cypress/browsers:node14.7.0-chrome84
       credentials:
-        username: ${{ inputs.e2e_dockerhub_username }}
+        username: ${{ secrets.e2e_dockerhub_username }}
         password: ${{ secrets.e2e_dockerhub_password }}
 
     steps:
@@ -69,7 +69,7 @@ jobs:
     container:
       image: docker://cypress/browsers:node14.7.0-chrome84
       credentials:
-        username: ${{ inputs.e2e_dockerhub_username }}
+        username: ${{ secrets.e2e_dockerhub_username }}
         password: ${{ secrets.e2e_dockerhub_password }}
 
 
