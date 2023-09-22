@@ -2,11 +2,9 @@ name: Reusable CI/CD Workflow
 
 on:
   workflow_call:
-    inputs:
+    secrets:
       e2e_dockerhub_username:
         required: true
-        type: string
-    secrets:
       e2e_dockerhub_password:
         description: 'DockerHub password required for logging into the container registry'
         required: true
