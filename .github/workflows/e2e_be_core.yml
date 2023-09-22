@@ -1,0 +1,52 @@
+name: e2e_be_core
+
+on:
+  workflow_call:
+    inputs:
+      be_url:
+        description: The backend URL for testing
+        type: string
+        required: true
+        default: ""
+      project:
+        description: Lagoon project name
+        type: string
+        required: true
+        default: ""
+      browser:
+        description: Browser, default to headless Chrome.
+        type: string
+        default: "chrome"
+      tag:
+        description: SDP testing Docker image tag
+        type: string
+        required: false
+        default: migration
+
+jobs:
+  e2e_be_core:
+    name: e2e_be_core
+    runs-on: biggy
+    container:
+      image: docker://sdptestautomation/e2e:${{ inputs.tag }}
+      credentials:
+        username: ${{ secrets.E2E_DOCKERHUB_USERNAME }}
+        password: ${{ secrets.E2E_DOCKERHUB_PASSWORD }}
+    steps:
+      - name: Check if it's PR env backend
+        run: |
+          PR_ENV_REGEX=".*.pr-"
+          if [[ $(expr match "${{ inputs.be_url }}" $PR_ENV_REGEX) != 0 ]]; then
+            echo 'export SKIP_PR=" and not @skip-pr"' >> $GITHUB_ENV
+            echo "PR env detected - adding @skip-pr tag to skip tests"
+          else
+            echo 'export SKIP_PR=""' >> $GITHUB_ENV
+            echo "PR env not detected"
+          fi
+      - name: Run E2E BE
+        uses: dpc-sdp/github-actions/.github/workflows/run_e2e_be.yml@dev-tim
+        with:
+          tags: "(@core) and @regression${SKIP_PR}"
+          be_url: ${{ inputs.be_url }}
+          project: ${{ inputs.project }}
+          browser: ${{ inputs.browser }}
