@@ -32,6 +32,9 @@ jobs:
       credentials:
         username: ${{ secrets.E2E_DOCKERHUB_USERNAME }}
         password: ${{ secrets.E2E_DOCKERHUB_PASSWORD }}
+    defaults:
+      run:
+        shell: bash
     outputs:
       skip_pr: ${{ steps.check-pr.outputs.SKIP_PR }}
     steps:
