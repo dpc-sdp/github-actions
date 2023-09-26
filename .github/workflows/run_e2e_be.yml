@@ -57,6 +57,9 @@ on:
           type: string
           required: false
           default: "sdp-test-report-dev"
+        test_status:
+          type: boolean
+          default: false
 
 env:
   # Test users
@@ -131,15 +134,13 @@ jobs:
           path: /app/logs/
       - 
         name: 'Add failed test result status to CMS'
-        if: |
-          failure()
+        if: inputs.test_status && failure()
         run: |
           cd /app
           TEST_STATUS=fail node -r ts-node/register -r tsconfig-paths/register scripts/addTestResult.ts
       - 
         name: 'Add succeeded test result status to CMS'
-        if: |
-          success()
+        if: inputs.test_status && success()
         run: |
           cd /app
           TEST_STATUS=pass node -r ts-node/register -r tsconfig-paths/register scripts/addTestResult.ts
