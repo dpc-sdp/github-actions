@@ -49,6 +49,7 @@ jobs:
             echo 'SKIP_PR=""' >> $GITHUB_OUTPUT
             echo "PR env not detected"
           fi
+          echo $GITHUB_OUTPUT
   e2e_be_custom:      
     name: Run E2E BE
     runs-on: biggy
