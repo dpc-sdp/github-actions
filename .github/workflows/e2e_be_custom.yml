@@ -43,10 +43,10 @@ jobs:
         run: |
           PR_ENV_REGEX=".*.pr-"
           if [[ $(expr match "${{ inputs.be_url }}" $PR_ENV_REGEX) != 0 ]]; then
-            echo 'SKIP_PR=" and not @skip-pr"' >> $GITHUB_OUTPUT
+            echo SKIP_PR=" and not @skip-pr" >> $GITHUB_OUTPUT
             echo "PR env detected - adding @skip-pr tag to skip tests"
           else
-            echo 'SKIP_PR=""' >> $GITHUB_OUTPUT
+            echo SKIP_PR="" >> $GITHUB_OUTPUT
             echo "PR env not detected"
           fi
           echo $GITHUB_OUTPUT
