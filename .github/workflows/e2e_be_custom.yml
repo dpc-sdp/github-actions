@@ -36,10 +36,10 @@ jobs:
       run:
         shell: bash
     outputs:
-      skip_pr: ${{ steps.check-pr.outputs.SKIP_PR }}
+      skip_pr: ${{ steps.check_pr.outputs.SKIP_PR }}
     steps:
       - name: Check if it's PR env backend
-        id: check-pr
+        id: check_pr
         run: |
           PR_ENV_REGEX=".*.pr-"
           if [[ $(expr match "${{ inputs.be_url }}" $PR_ENV_REGEX) != 0 ]]; then
@@ -49,7 +49,7 @@ jobs:
             echo SKIP_PR="" >> $GITHUB_OUTPUT
             echo "PR env not detected"
           fi
-          echo $GITHUB_OUTPUT
+          echo Output: $GITHUB_OUTPUT
   e2e_be_custom:      
     name: Run E2E BE
     runs-on: biggy
