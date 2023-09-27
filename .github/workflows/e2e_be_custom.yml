@@ -52,6 +52,7 @@ jobs:
           echo Output: "$GITHUB_OUTPUT"
   e2e_be_custom:      
     name: Run E2E BE
+    needs: check_pr
     uses: dpc-sdp/github-actions/.github/workflows/run_e2e_be.yml@main
     with:
       tags: "(@${{ inputs.project }}) and @regression${{ needs.check_pr.outputs.skip_pr }}"
