@@ -52,6 +52,7 @@ jobs:
           echo Output: "$GITHUB_OUTPUT"
   e2e_be_custom:      
     name: Run E2E BE
+    needs: check_pr
     runs-on: biggy
     steps:
       - name: test
