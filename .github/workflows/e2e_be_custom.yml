@@ -46,13 +46,13 @@ jobs:
             echo 'SKIP_PR=" and not @skip-pr"' >> "$GITHUB_OUTPUT"
             echo "PR env detected - adding @skip-pr tag to skip tests"
           else
-            echo SKIP_PR="" >> $GITHUB_OUTPUT
+            echo SKIP_PR="" >> "$GITHUB_OUTPUT"
             echo "PR env not detected"
           fi
-          echo Output: "$GITHUB_OUTPUT"
   e2e_be_custom:      
     name: Run E2E BE
     needs: check_pr
+    secrets: inherit
     uses: dpc-sdp/github-actions/.github/workflows/run_e2e_be.yml@main
     with:
       tags: "(@${{ inputs.project }}) and @regression${{ needs.check_pr.outputs.skip_pr }}"
