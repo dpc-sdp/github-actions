@@ -2,7 +2,11 @@ name: Reusable CI/CD Workflow
 
 on:
   workflow_call:
-
+    secrets:
+      E2E_DOCKERHUB_USERNAME:
+        required: true
+      E2E_DOCKERHUB_PASSWORD:
+        required: true
 
 jobs:
   build:
