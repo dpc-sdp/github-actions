@@ -72,21 +72,21 @@ on:
 
 env:
   # Test users
-  BE_ADMIN_USER: ${{ secrets.BE_ADMIN_USER }}
-  BE_ADMIN_PASS: ${{ secrets.BE_ADMIN_PASS }}
-  BE_APPROVER_USER: ${{ secrets.BE_APPROVER_USER }}
-  BE_APPROVER_PASS: ${{ secrets.BE_APPROVER_PASS }}
-  BE_EDITOR_USER: ${{ secrets.BE_EDITOR_USER }}
-  BE_EDITOR_PASS: ${{ secrets.BE_EDITOR_PASS }}
+  BE_ADMIN_USER: ${{ secrets.TEST_BE_ADMIN_USER }}
+  BE_ADMIN_PASS: ${{ secrets.TEST_BE_ADMIN_PASS }}
+  BE_APPROVER_USER: ${{ secrets.TEST_BE_APPROVER_USER }}
+  BE_APPROVER_PASS: ${{ secrets.TEST_BE_APPROVER_PASS }}
+  BE_EDITOR_USER: ${{ secrets.TEST_BE_EDITOR_USER }}
+  BE_EDITOR_PASS: ${{ secrets.TEST_BE_EDITOR_PASS }}
   # Keys
-  BROWSERSTACK_USER: ${{ secrets.BROWSERSTACK_USER }}
-  BROWSERSTACK_KEY: ${{ secrets.BROWSERSTACK_KEY }}
-  APPLITOOLS_API_KEY: ${{ secrets.APPLITOOLS_API_KEY }}
-  CUCUMBER_PUBLISH_TOKEN: ${{ secrets.CUCUMBER_PUBLISH_TOKEN }}
+  BROWSERSTACK_USER: ${{ secrets.TEST_BROWSERSTACK_USER }}
+  BROWSERSTACK_KEY: ${{ secrets.TEST_BROWSERSTACK_KEY }}
+  APPLITOOLS_API_KEY: ${{ secrets.TEST_APPLITOOLS_API_KEY }}
+  CUCUMBER_PUBLISH_TOKEN: ${{ secrets.TEST_CUCUMBER_PUBLISH_TOKEN }}
   # Settings
   TESTID: ${{ inputs.test_id }}
   NIGHTWATCH_OUTPUT: true
-  CIRCLE_BRANCH: ${{ github.ref_name }}
+  CIRCLE_BRANCH: ${{ github.event.pull_request && github.head_ref || github.ref_name }}
   EYES_APPNAME: ${{ inputs.eyes_appname }}
 
 jobs:

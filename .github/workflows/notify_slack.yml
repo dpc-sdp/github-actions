@@ -70,8 +70,8 @@ jobs:
         REPO_URL: ${{ github.event.repository.html_url }}
         JOB: ${{ github.workflow }}
         LINK: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        BRANCH_LINK: ${{ github.ref_name }}
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        BRANCH_LINK: ${{ github.event.pull_request && github.head_ref || github.ref_name }}
+        SLACK_BOT_TOKEN: ${{ secrets.TEST_SLACK_BOT_TOKEN }}
         ARTIFACTS_URL: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
       with:
         channel-id: ${{ inputs.slack_channel }}
@@ -145,6 +145,6 @@ jobs:
         REPO_URL: ${{ github.event.repository.html_url }}
         JOB: ${{ github.workflow }}
         LINK: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        BRANCH_LINK: ${{ github.ref_name }}
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        BRANCH_LINK: ${{ github.event.pull_request && github.head_ref || github.ref_name }}
+        SLACK_BOT_TOKEN: ${{ secrets.TEST_SLACK_BOT_TOKEN }}
         ARTIFACTS_URL: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
