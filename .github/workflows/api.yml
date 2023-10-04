@@ -3,23 +3,15 @@ name: api
 on:
   workflow_call:
     inputs:
-      tag:
-        description: SDP testing Docker image tag
-        type: string
-        required: false
-        default: migration
       be_url:
         description: The backend URL for testing
         type: string
         required: true
-      disable_core:
-        description: Set the TEST_NEWMAN_DISABLE_CORE env var
-        type: boolean
-        required: false
-        default: false
-
-env:
-  TEST_NEWMAN_DISABLE_CORE: ${{ inputs.disable_core }}
+      project:
+        description: Lagoon project name
+        type: string
+        required: true
+        default: ""
 
 jobs:
   api:
@@ -53,7 +45,7 @@ jobs:
             then
               echo "==> Core Tests are disabled by env var TEST_NEWMAN_DISABLE_CORE. Skip the test."
             else
-              case ${CIRCLE_BRANCH} in
+              case ${GITHUB_REF_NAME} in
                 standby|production)
                   newman run tests/newman/tide.collection.json --folder default -e tests/newman/tide.environment.json --env-var "host=${BE_BASE_URL}" --env-var "branch=${GITHUB_REF_NAME}" --color on -r htmlextra --reporter-htmlextra-export ./report/tide.collection.report.html;;
                 *)
@@ -89,3 +81,15 @@ jobs:
         with:
           name: custom-test-report
           path: /app/report/custom.collection.report.html
+  notify_slack:
+    uses: ./.github/workflows/notify_slack.yml
+    if: always()
+    needs: [api]
+    secrets: inherit
+    with:
+      workflow_name: BE API
+      test_type: ":nightwatch:"
+      test_subtype: ":nightwatch:"
+      artifact_name: "report-url"
+      be_url: ${{ inputs.be_url }}
+      project: ${{ inputs.project }}
