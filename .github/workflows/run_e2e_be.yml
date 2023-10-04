@@ -153,7 +153,19 @@ jobs:
           path: /app/reports/report-url.txt
   notify_slack:
     uses: ./.github/workflows/notify_slack.yml
-    if: always()
+    if: |
+      always() &&
+      ( inputs.slack_notify == 'always' ||
+        ( inputs.slack_notify == 'release_only' &&
+          ( startsWith(github.ref_name, 'release/') ||
+            github.ref_name == 'uat_test' ||
+            github.ref_name == 'uat' ||
+            github.ref_name == 'master' ||
+            github.ref_name == 'production' ||
+            github.ref_name == 'standby'
+          )
+        )
+      )
     needs: [run_e2e_be]
     secrets: inherit
     with:
