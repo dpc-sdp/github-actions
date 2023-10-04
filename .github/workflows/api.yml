@@ -88,8 +88,8 @@ jobs:
     secrets: inherit
     with:
       workflow_name: BE API
-      test_type: ":nightwatch:"
-      test_subtype: ":nightwatch:"
-      artifact_name: "report-url"
+      test_type: ":api:"
+      test_subtype: ":api:"
+      artifact_name: "core-test-report"
       be_url: ${{ inputs.be_url }}
       project: ${{ inputs.project }}
