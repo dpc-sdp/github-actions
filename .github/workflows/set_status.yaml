@@ -1,0 +1,42 @@
+name: set_status
+
+on:
+  workflow_call:
+    inputs:
+      repo:
+        description: The organisation and repository name, separated by a /
+        type: string
+        required: true
+      commit_sha:
+        description: Commit SHA
+        type: string
+        required: true
+      state:
+        description: success or failed
+        type: string
+        required: true
+      description:
+        description: The description
+        type: string
+        required: true
+      context:
+        description: Name of the status
+        type: string
+        required: true
+
+jobs:
+  set_status:
+    name: set_status
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set commit status in the GitHub API
+        run: |
+          curl -X POST \
+          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/${{ inputs.repo }}/statuses/${{ inputs.commit_sha }} \
+          -d "{
+                \"state\": \"${{ inputs.state }}\",
+                \"description\": \"${{ inputs.description }}\",
+                \"context\": \"${{ inputs.context }}\"
+              }"
