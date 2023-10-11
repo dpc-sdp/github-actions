@@ -3,10 +3,6 @@ name: set_status
 on:
   workflow_call:
     inputs:
-      state:
-        description: success or failed
-        type: string
-        required: true
       description:
         description: The description
         type: string
@@ -21,6 +17,7 @@ jobs:
     name: set_status
     runs-on: ubuntu-latest
     steps:
+      - uses: technote-space/workflow-conclusion-action@v3
       - name: Set commit status in the GitHub API
         run: |
           curl -X POST \
@@ -28,7 +25,7 @@ jobs:
           -H "Accept: application/vnd.github.v3+json" \
           https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }} \
           -d "{
-                \"state\": \"${{ inputs.state }}\",
+                \"state\": \"${{ env.WORKFLOW_CONCLUSION }}\",
                 \"description\": \"${{ inputs.description }}\",
                 \"context\": \"${{ inputs.context }}\"
               }"
