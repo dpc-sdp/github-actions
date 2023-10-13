@@ -14,6 +14,8 @@ jobs:
         run: echo ${{ github.event.branches[0].name }}
       - name: Output tested commit
         run: echo ${{ github.event.branches[0].commit.sha }}
+      - name: Output ref
+        run: echo ${{ github.ref }}
       - name: Determine status state
         run: |
           output=$(curl -L \
