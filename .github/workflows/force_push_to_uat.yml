@@ -10,8 +10,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Output event object
-        run: echo "${{ toJson(github.event) }}"
       - name: Output caller branch
         run: echo ${{ github.event.branches.name }}
       - name: Output tested commit
