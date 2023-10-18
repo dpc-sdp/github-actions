@@ -11,6 +11,10 @@ on:
         description: Name of the status
         type: string
         required: true
+      target_url:
+        description: The target URL to associate with this status
+        type: string
+        required: false
 
 jobs:
   set_status:
@@ -27,5 +31,6 @@ jobs:
           -d "{
                 \"state\": \"${{ env.WORKFLOW_CONCLUSION }}\",
                 \"description\": \"${{ inputs.description }}\",
-                \"context\": \"${{ inputs.context }}\"
+                \"context\": \"${{ inputs.context }}\",
+                \"target_url\": \"${{ inputs.target_url }}\"
               }"
