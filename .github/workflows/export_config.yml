@@ -14,9 +14,9 @@ jobs:
       # GitHub Actions does not support cloning to a custom path.
       - name: Copy repo
         run: |
+          chown -R $(id -u):$(id -g) $PWD
           cp -R /__w/${GITHUB_REPOSITORY#*/}/${GITHUB_REPOSITORY#*/} /app
-          git config --system --add safe.directory /app
-          cd /app
       - name: Run export script
         run: |
+          cd /app
           /app/.circleci/export-config.sh
