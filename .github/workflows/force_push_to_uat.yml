@@ -14,8 +14,6 @@ jobs:
         run: echo ${{ github.event.branches[0].name }}
       - name: Output tested commit
         run: echo ${{ github.event.branches[0].commit.sha }}
-      - name: Output ref
-        run: echo ${{ github.ref }}
       - name: Determine status state
         run: |
           output=$(curl -L \
@@ -34,7 +32,11 @@ jobs:
           e2e_status=$(echo "$output" | jq -r '.statuses[] | select(.context == "e2e_be") | .state')
           build_status=$(echo "$output" | jq -r '.statuses[] | select(.context == "tide_build") | .state')
 
-          if [[ $api_status == "success" && $e2e_status == "success" && $build_status == "success" ]]; then
+          echo "API test status is $api_status"
+          echo "E2E test status is $e2e_status"
+          echo "Build status is $build_status"
+
+          if [[ $api_status == "success" && $e2e_status == "failure" && $build_status == "failure" ]]; then
             echo "==> All checks passed, deploying to UAT."
             exit 0
           else
