@@ -10,7 +10,7 @@ jobs:
       image: ghcr.io/dpc-sdp/bay/ci-builder:5.x
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
       # GitHub Actions does not support cloning to a custom path.
       - name: Copy repo
         run: |
