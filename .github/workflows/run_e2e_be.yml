@@ -126,13 +126,6 @@ jobs:
           name: test-results
           path: /app/reports/
       - 
-        name: Upload chromedriver log
-        uses: actions/upload-artifact@v2
-        if: always()
-        with:
-          name: chromedriver-log
-          path: /app/logs/
-      - 
         name: 'Add failed test result status to CMS'
         if: inputs.test_status && failure()
         run: |

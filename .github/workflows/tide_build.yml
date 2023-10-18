@@ -22,3 +22,13 @@ jobs:
         if: always()
         run: |
           /app/.circleci/test.sh
+      - name: Copy artifacts
+        if: always()
+        run: |
+          /app/.circleci/test-artifacts.sh
+      - name: Upload test results
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: behat-results
+          path: /tmp/artifacts
