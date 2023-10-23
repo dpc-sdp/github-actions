@@ -66,7 +66,7 @@ jobs:
         with:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
-          tags: rashedkhan/my-custom-mysql-image:db-production-latest
+          tags: rashedkhan/my-custom-mysql-image:production-latest
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64  # Add other platforms if needed
           build-args: |
@@ -74,5 +74,20 @@ jobs:
             AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
             VERSION=${{ github.ref_name }}
             COMMIT=${{ github.sha }}
+      
+
+  notify_slack:
+    uses: ./.github/workflows/notify_slack.yml
+    if: always()
+    needs: [view_tables]
+    secrets: inherit
+    with:
+      workflow_name: ${{ inputs.name }}
+      test_type: ":nightwatch:"
+      test_subtype: ":nightwatch:"
+      artifact_name: "report-url"
+      be_url: ${{ inputs.be_url }}
+      project: ${{ inputs.project }}
+      slack_channel: ${{ inputs.slack_channel }}
 
 
