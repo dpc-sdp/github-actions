@@ -1,7 +1,7 @@
-name: View MySQL Tables
+name: Reusable View MySQL Tables Workflow
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       be_url:
         description: 'Backend URL'
@@ -15,6 +15,15 @@ on:
         description: 'Project'
         required: false
         type: string
+    secrets:
+      DOCKER_PASSWORD:
+        required: true
+      DOCKER_USERNAME:
+        required: true
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
       
 jobs:
   view_tables:
