@@ -59,13 +59,14 @@ jobs:
           tags: |
             type=ref,event=branch
 
+
       - name: Build and push multi-arch Docker image
         id: build-and-push
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ github.ref_type == 'tag' && format('rashedkhan/my-custom-mysql-image:{0}', github.ref_name) || steps.meta.outputs.tags }}
+          tags: rashedkhan/my-custom-mysql-image:db-production-latest
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64  # Add other platforms if needed
           build-args: |
@@ -73,3 +74,5 @@ jobs:
             AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
             VERSION=${{ github.ref_name }}
             COMMIT=${{ github.sha }}
+
+
