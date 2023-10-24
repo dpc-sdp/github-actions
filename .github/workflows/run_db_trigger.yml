@@ -79,13 +79,14 @@ jobs:
   notify_slack:
     uses: ./.github/workflows/notify_slack.yml
     if: always()
-    needs: [view_tables]
+    needs: [run_e2e_fe]
     secrets: inherit
     with:
       workflow_name: ${{ inputs.name }}
       test_type: ":nightwatch:"
       test_subtype: ":nightwatch:"
       artifact_name: "report-url"
+      fe_url: ${{ inputs.fe_url }}
       be_url: ${{ inputs.be_url }}
       project: ${{ inputs.project }}
       slack_channel: ${{ inputs.slack_channel }}
