@@ -24,6 +24,8 @@ on:
         required: true
       AWS_SECRET_ACCESS_KEY:
         required: true
+      SLACK_WEBHOOK_URL:
+        required: true
       
 jobs:
   view_tables:
