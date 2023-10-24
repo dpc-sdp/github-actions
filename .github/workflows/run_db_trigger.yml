@@ -91,7 +91,7 @@ jobs:
           channel: '#dpc-devops-internal'
           if_mention: always
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
 
 
