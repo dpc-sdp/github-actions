@@ -77,18 +77,28 @@ jobs:
       
 
   notify_slack:
-    uses: ./.github/workflows/notify_slack.yml
-    if: always()
+    runs-on: ubuntu-latest
     needs: [view_tables]
-    secrets: inherit
-    with:
-      workflow_name: ${{ inputs.name }}
-      test_type: ":nightwatch:"
-      test_subtype: ":nightwatch:"
-      artifact_name: "report-url"
-      fe_url: ${{ inputs.fe_url }}
-      be_url: ${{ inputs.be_url }}
-      project: ${{ inputs.project }}
-      slack_channel: ${{ inputs.slack_channel }}
+    steps:
+      - name: Check if view_tables passed
+        id: check_status
+        run: |
+          if [[ "${{ needs.view_tables.result }}" == "success" ]]; then
+            echo "::set-output name=status::passed"
+          else
+            echo "::set-output name=status::failed"
+          fi
+  
+      - name: Send Notification to Slack
+        uses: 8398a7/action-slack@v3
+        with:
+          text: 'The `view_tables` job has ${{ steps.check_status.outputs.status }}.'
+          mention: channel
+          author_name: GitHub Actions
+          channel: '#doc-devops-internal'
+          if_mention: always
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_TOKEN }}
+
 
 
