@@ -88,14 +88,14 @@ jobs:
           else
             echo "::set-output name=status::failed"
           fi
-  
+
       - name: Send Notification to Slack
         uses: 8398a7/action-slack@v3
         with:
           text: 'The `view_tables` job has ${{ steps.check_status.outputs.status }}.'
           mention: channel
           author_name: GitHub Actions
-          channel: '#doc-devops-internal'
+          channel: '#dpc-devops-internal'
           if_mention: always
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_TOKEN }}
