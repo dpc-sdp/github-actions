@@ -12,6 +12,11 @@ on:
         type: string
         required: true
         default: ""
+      slack_notify:
+        description: When to send the Slack notifications
+        type: string
+        required: false
+        default: "release_only"
 
 jobs:
   api:
@@ -83,7 +88,19 @@ jobs:
           path: /app/report/custom.collection.report.html
   notify_slack:
     uses: ./.github/workflows/notify_slack.yml
-    if: always()
+    if: |
+      always() &&
+      ( inputs.slack_notify == 'always' ||
+        ( inputs.slack_notify == 'release_only' &&
+          ( startsWith(github.ref_name, 'release/') ||
+            github.ref_name == 'uat_test' ||
+            github.ref_name == 'uat' ||
+            github.ref_name == 'master' ||
+            github.ref_name == 'production' ||
+            github.ref_name == 'standby'
+          )
+        )
+      )
     needs: [api]
     secrets: inherit
     with:

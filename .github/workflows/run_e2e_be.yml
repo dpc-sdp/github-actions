@@ -57,6 +57,11 @@ on:
           type: string
           required: false
           default: "sdp-test-report-dev"
+        slack_notify:
+          description: When to send the Slack notifications
+          type: string
+          required: false
+          default: "release_only"
         test_status:
           type: boolean
           default: false
