@@ -91,22 +91,16 @@ jobs:
     if: |
       always() &&
       ( inputs.slack_notify == 'always' ||
-        ( inputs.slack_notify == 'release_only' &&
-          ( startsWith(github.ref_name, 'release/') ||
-            github.ref_name == 'uat_test' ||
-            github.ref_name == 'uat' ||
-            github.ref_name == 'master' ||
-            github.ref_name == 'production' ||
-            github.ref_name == 'standby'
-          )
+        ( inputs.slack_notify == 'release_only' && 
+          contains(fromJSON('["release/", "uat", "master", "standby", "production"]'), github.ref_name)
         )
       )
     needs: [api]
     secrets: inherit
     with:
       workflow_name: BE API
-      test_type: ":api:"
-      test_subtype: ":api:"
+      test_type: ":postman:"
+      test_subtype: ":smoke_test:"
       artifact_name: "core-test-report"
       be_url: ${{ inputs.be_url }}
       project: ${{ inputs.project }}

@@ -152,14 +152,8 @@ jobs:
     if: |
       always() &&
       ( inputs.slack_notify == 'always' ||
-        ( inputs.slack_notify == 'release_only' &&
-          ( startsWith(github.ref_name, 'release/') ||
-            github.ref_name == 'uat_test' ||
-            github.ref_name == 'uat' ||
-            github.ref_name == 'master' ||
-            github.ref_name == 'production' ||
-            github.ref_name == 'standby'
-          )
+        ( inputs.slack_notify == 'release_only' && 
+          contains(fromJSON('["release/", "uat", "master", "standby", "production"]'), github.ref_name)
         )
       )
     needs: [run_e2e_fe]
