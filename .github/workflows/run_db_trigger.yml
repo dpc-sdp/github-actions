@@ -93,7 +93,7 @@ jobs:
           build-args: |
             AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
             AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            BUCKET_NAME=${{ inputs.file_name }}
+            BUCKET_NAME=${{ inputs.bucket_name }}
             FILE_NAME=${{ inputs.file_name }}         
             VERSION=${{ github.ref_name }}
             COMMIT=${{ github.sha }}
