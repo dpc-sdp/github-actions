@@ -17,11 +17,11 @@ on:
         type: string
       bucket_name:
         description: 'S3 Bucket Name'
-        required: false
+        required: true
         type: string
       file_name:
         description: 'File Name in S3'
-        required: false
+        required: true
         type: string   
     secrets:
       DOCKER_PASSWORD:
@@ -93,8 +93,8 @@ jobs:
           build-args: |
             AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
             AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            BUCKET_NAME=${{ github.event.inputs.bucket_name }}
-            FILE_NAME=${{ github.event.inputs.file_name }}         
+            BUCKET_NAME=${{ inputs.file_name }}
+            FILE_NAME=${{ inputs.file_name }}         
             VERSION=${{ github.ref_name }}
             COMMIT=${{ github.sha }}
       
