@@ -57,6 +57,11 @@ jobs:
 
       - name: Install jq and curl
         run: sudo apt-get update && sudo apt-get install -y jq curl
+      
+      - name: Debug inputs
+        run: |
+          echo "BUCKET_NAME=${{ inputs.bucket_name }}"
+          echo "FILE_NAME=${{ inputs.file_name }}"
 
       - name: Log into Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
