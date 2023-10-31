@@ -85,7 +85,7 @@ jobs:
                         "type": "section",
                         "text": {
                           "type": "mrkdwn",
-                          "text": "${{ inputs.test_type }} *<${{ github.event.repository.html_url }}|${{ github.repository }}> - Test <${{ env.LINK }}|${{ inputs.workflow_name }}> on ${{ env.BRANCH_LINK }} has passed.*"
+                          "text": "${{ inputs.test_type }}${{ inputs.test_subtype }} *<${{ github.event.repository.html_url }}|${{ github.repository }}> - Test <${{ env.LINK }}|${{ inputs.workflow_name }}> on ${{ env.BRANCH_LINK }} has passed.*"
                         }
                       },
                       {
