@@ -92,7 +92,7 @@ jobs:
       always() &&
       ( inputs.slack_notify == 'always' ||
         ( inputs.slack_notify == 'release_only' && 
-          contains(fromJSON('["release/", "uat", "master", "standby", "production"]'), github.ref_name)
+          contains(fromJSON('["release", "uat", "master", "standby", "production"]'), github.ref_name)
         )
       )
     needs: [api]
