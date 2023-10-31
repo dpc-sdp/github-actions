@@ -102,7 +102,7 @@ jobs:
     with:
       workflow_name: BE API
       test_type: ":postman:"
-      test_subtype: ":smoke_test:"
+      test_subtype: ":smoke-test:"
       artifact_name: "core-test-report"
       be_url: ${{ inputs.be_url }}
       project: ${{ inputs.project }}
