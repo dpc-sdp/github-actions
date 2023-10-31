@@ -55,7 +55,8 @@ on:
         required: true
       test_type:
         type: string
-        required: true
+        required: false
+        default: ':e2e:'
       test_subtype:
         type: string
         required: false
