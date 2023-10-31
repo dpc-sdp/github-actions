@@ -15,8 +15,8 @@ on:
         description: 'Project'
         required: false
         type: string
-      bucket_name:
-        description: 'S3 Bucket Name'
+      s3_uri:
+        description: 'S3 URI'
         required: true
         type: string
       file_name:
@@ -60,12 +60,12 @@ jobs:
       
       - name: Echo Inputs
         run: |
-          echo "BUCKET_NAME=${{ github.event.inputs.bucket_name }}"
+          echo "S3_URI=${{ github.event.inputs.s3_uri }}"
           echo "FILE_NAME=${{ github.event.inputs.file_name }}"
       
       - name: Echo bucket and file names
         run: |
-          echo "BUCKET_NAME=${{ inputs.bucket_name }}"
+          echo "BUCKET_NAME=${{ inputs.s3_uri }}"
           echo "FILE_NAME=${{ inputs.file_name }}"
 
 
@@ -93,7 +93,7 @@ jobs:
           build-args: |
             AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
             AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            BUCKET_NAME=${{ inputs.bucket_name }}
+            S3_URI=${{ inputs.s3_uri }}
             FILE_NAME=${{ inputs.file_name }}         
             VERSION=${{ github.ref_name }}
             COMMIT=${{ github.sha }}
