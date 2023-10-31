@@ -99,16 +99,7 @@ jobs:
             VERSION=${{ github.ref_name }}
             COMMIT=${{ github.sha }}
 
-
-      - name: Link Package to Repository
-        run: |
-          gh cr repo update rashed-k/pulling-s3-objects/db add-package ghcr.io/rashed-k/pulling-s3-objects/db:production-latest
-        env:
-          GH_TOKEN: ${{ secrets.DOCKER_PASSWORD }}
-
-
-
-      
+ 
 
 #  notify_slack:
 #    runs-on: ubuntu-latest
