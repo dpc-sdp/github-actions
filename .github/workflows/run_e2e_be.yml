@@ -44,6 +44,10 @@ on:
         test_type:
           type: string
           required: true
+        test_subtype:
+          type: string
+          required: false
+          default: ''
         runner:
           type: string
           required: false
@@ -158,16 +162,18 @@ jobs:
     if: |
       always() &&
       ( inputs.slack_notify == 'always' ||
-        ( inputs.slack_notify == 'release_only' && 
-          contains(fromJSON('["release", "uat", "master", "standby", "production"]'), github.ref_name)
+        ( inputs.slack_notify == 'release_only' &&
+          ( startsWith(github.ref_name, 'release/') ||
+            contains(fromJSON('["uat", "master", "standby", "production"]'), github.ref_name)
+          )
         )
       )
     needs: [run_e2e_be]
     secrets: inherit
     with:
       workflow_name: ${{ inputs.name }}
-      test_type: ":nightwatch:"
-      test_subtype: ":nightwatch:"
+      test_type: "{{ input.test_type }}"
+      test_subtype: "{{ input.test_subtype }}"
       artifact_name: "report-url"
       be_url: ${{ inputs.be_url }}
       project: ${{ inputs.project }}
