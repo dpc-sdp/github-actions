@@ -173,8 +173,8 @@ jobs:
     secrets: inherit
     with:
       workflow_name: ${{ inputs.name }}
-      test_type: "{{ input.test_type }}"
-      test_subtype: "{{ input.test_subtype }}"
+      test_type: ${{ inputs.test_type }}
+      test_subtype: ${{ inputs.test_subtype }}
       artifact_name: "report-url"
       be_url: ${{ inputs.be_url }}
       project: ${{ inputs.project }}
