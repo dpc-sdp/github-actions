@@ -55,7 +55,12 @@ on:
         required: true
       test_type:
         type: string
-        required: true
+        required: false
+        default: ':e2e:'
+      test_subtype:
+        type: string
+        required: false
+        default: ''
       runner:
         type: string
         required: false
@@ -69,6 +74,11 @@ on:
         type: string
         required: false
         default: "sdp-test-report-dev"
+      slack_notify:
+        description: When to send the Slack notifications
+        type: string
+        required: false
+        default: "release_only"
 
 env:
   # Test users
@@ -144,13 +154,21 @@ jobs:
           path: /app/reports/report-url.txt
   notify_slack:
     uses: ./.github/workflows/notify_slack.yml
-    if: always()
+    if: |
+      always() &&
+      ( inputs.slack_notify == 'always' ||
+        ( inputs.slack_notify == 'release_only' &&
+          ( startsWith(github.ref_name, 'release/') ||
+            contains(fromJSON('["uat", "master", "standby", "production"]'), github.ref_name)
+          )
+        )
+      )
     needs: [run_e2e_fe]
     secrets: inherit
     with:
       workflow_name: ${{ inputs.name }}
-      test_type: ":nightwatch:"
-      test_subtype: ":nightwatch:"
+      test_type: ${{ inputs.test_type }}
+      test_subtype: ${{ inputs.test_subtype }}
       artifact_name: "report-url"
       fe_url: ${{ inputs.fe_url }}
       be_url: ${{ inputs.be_url }}
