@@ -61,13 +61,13 @@ jobs:
       
       - name: Echo Inputs
         run: |
-          echo "S3_URI=${{ github.event.inputs.s3_uri }}"
-          echo "FILE_NAME=${{ github.event.inputs.file_name }}"
+          echo "owner=${{ github.event.inputs.owner }}"
+          echo "repo=${{ github.event.inputs.repo }}"
       
       - name: Echo bucket and file names
         run: |
-          echo "S3_URI=${{ inputs.s3_uri }}"
-          echo "FILE_NAME=${{ inputs.file_name }}"
+          echo "owner=${{ inputs.owner }}"
+          echo "repo=${{ inputs.repo }}"
 
 
 
