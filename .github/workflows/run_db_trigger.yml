@@ -88,7 +88,7 @@ jobs:
         with:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ghcr.io/rashed-k/pulling-s3-objects/db:production-latest
+          tags: ghcr.io/${{ inputs.owner }}/${{ inputs.repo }}/db:production-latest
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64  # Add other platforms if needed
           build-args: |
@@ -101,22 +101,22 @@ jobs:
 
  
 
-#  notify_slack:
-#    runs-on: ubuntu-latest
-#    needs: [view_tables]
-#    steps:
-#      - name: Send Notification to Slack
-#        if: always()
-#        uses: 8398a7/action-slack@v3
-#        with:
-#          status: ${{ needs.view_tables.result }}
-#          text: 'The `view_tables` job has ${{ needs.view_tables.result }}.'
-#          mention: channel
-#          author_name: GitHub Actions
-#          channel: '#dpc-devops-internal'
-#          if_mention: always
-#        env:
-#          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+  notify_slack:
+    runs-on: ubuntu-latest
+    needs: [view_tables]
+    steps:
+      - name: Send Notification to Slack
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ needs.view_tables.result }}
+          text: '${{ inputs.repo }} - db-trigger workflow has ${{ needs.view_tables.result }}.'
+          mention: channel
+          author_name: GitHub Actions
+          channel: '#dpc-devops-internal'
+          if_mention: always
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
 
 
