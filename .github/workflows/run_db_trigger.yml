@@ -23,14 +23,7 @@ on:
         description: 'File Name in S3'
         required: true
         type: string
-      owner:
-        description: 'Github Owner'
-        required: true
-        type: string
-      repo:
-        description: 'Github Repo'
-        required: true
-        type: string
+
     secrets:
       DOCKER_PASSWORD:
         required: true
