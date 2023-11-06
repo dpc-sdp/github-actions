@@ -59,6 +59,10 @@ jobs:
       - name: Install jq and curl
         run: sudo apt-get update && sudo apt-get install -y jq curl
 
+      - name: Extract repository name
+        id: repo_name
+        run: echo "REPO_NAME=$(echo '${{ github.repository }}' | cut -d'/' -f2)" >> $GITHUB_ENV
+
       - name: Echo Inputs
         run: |
           echo "owner=${{ github.event.inputs.owner }}"
@@ -79,7 +83,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
-          images: ghcr.io/rashed-k/pulling-s3-objects/db
+          images: ghcr.io/rashed-k/${{ env.REPO_NAME }}/db
           tags: |
             type=ref,event=branch
 
@@ -89,7 +93,7 @@ jobs:
         with:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ghcr.io/rashed-k/pulling-s3-objects/db:production-latest
+          tags: ghcr.io/rashed-k/${{ env.REPO_NAME }}/db:production-latest
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64  # Add other platforms if needed
           build-args: |
