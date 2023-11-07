@@ -121,7 +121,7 @@ jobs:
           text: 'Attention: The db-trigger workflow has FAILED in project "${{ inputs.project }}" for repo "${{ github.repository }}"!'
           fields: 'project: ${{ inputs.project }}, repo: ${ { github.repository }}'
           mention: 'here'
-          author_name: 'GitHub Actions'
+          author_name: 'DPC TEAM'
           channel: '#dpc-devops-internal'
           color: 'danger'  
           if_mention: 'always'
@@ -136,7 +136,7 @@ jobs:
           text: 'The db-trigger workflow for project "${{ inputs.project }}" in repository "${{ github.repository }}" has succeeded.'
           fields: 'project: ${{ inputs.project }}, repo: ${ { github.repository }}'
           mention: 'channel'
-          author_name: 'GitHub Actions'
+          author_name: 'DPC TEAM'
           channel: '#dpc-devops-internal'
           color: 'good'  
         env:
