@@ -111,21 +111,35 @@ jobs:
     runs-on: ubuntu-latest
     needs: [view_tables]
     steps:
-      - name: Send Notification to Slack
-        if: always() 
+      - name: Send Notification to Slack on Failure
+        if: ${{ needs.view_tables.result == 'failure' }}
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ needs.view_tables.result }}
-          text: |
-            The db-trigger workflow for the project "${{ inputs.project }}" in the repository ${{ github.repository }} has completed with status: ${{ needs.view_tables.result }}.
-            ${{ if eq(needs.view_tables.result, 'failure') (format('Attention: The view_tables job has FAILED in project "%s" for repo "%s"!', inputs.project, github.repository)) '' }}
-          fields: repo,commit,author,took 
+          text: 'Attention: The view_tables job has FAILED in project "${{ inputs.project }}" for repo "${{ github.repository }}"!'
+          fields: 'project: ${{ inputs.project }}, repo: ${{ github.repository }}'
           mention: channel
           author_name: GitHub Actions
           channel: '#dpc-devops-internal'
-          if_mention: failure, cancelled 
+          color: 'danger' # Red color for failure messages
+          if_mention: always
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+  
+      - name: Send Notification to Slack on Success
+        if: ${{ needs.view_tables.result == 'success' }}
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ needs.view_tables.result }}
+          text: 'The db-trigger workflow for project "${{ inputs.project }}" in the repository "${{ github.repository }}" has succeeded.'
+          fields: 'project: ${{ inputs.project }}, repo: ${{ github.repository }}'
+          mention: channel
+          author_name: GitHub Actions
+          channel: '#dpc-devops-internal'
+          color: 'good' # Green color for success messages
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
 
 
 
