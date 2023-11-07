@@ -118,9 +118,9 @@ jobs:
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ needs.view_tables.result }}
-          text: 'Attention: The view_tables job has FAILED in project "${{ inputs.project }}" for repo "${{ github.repository }}"!'
+          text: 'Attention: The db-trigger workflow has FAILED in project "${{ inputs.project }}" for repo "${{ github.repository }}"!'
           fields: 'project: ${{ inputs.project }}, repo: ${ { github.repository }}'
-          mention: 'channel'
+          mention: 'here'
           author_name: 'GitHub Actions'
           channel: '#dpc-devops-internal'
           color: 'danger'  
