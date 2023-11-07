@@ -73,7 +73,8 @@ jobs:
           echo "owner=${{ inputs.owner }}"
           echo "repo=${{ inputs.repo }}"
 
-
+      - name: Introduce an artificial failure
+        run: exit 1
 
       - name: Log into GitHub Container Registry (GHCR)
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login ghcr.io -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
@@ -125,7 +126,7 @@ jobs:
           if_mention: always
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-  
+
       - name: Send Notification to Slack on Success
         if: ${{ needs.view_tables.result == 'success' }}
         uses: 8398a7/action-slack@v3
