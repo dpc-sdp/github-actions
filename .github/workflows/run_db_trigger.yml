@@ -63,18 +63,6 @@ jobs:
         id: repo_name
         run: echo "REPO_NAME=$(echo '${{ github.repository }}' | cut -d'/' -f2)" >> $GITHUB_ENV
 
-      - name: Echo Inputs
-        run: |
-          echo "owner=${{ github.event.inputs.owner }}"
-          echo "repo=${{ github.event.inputs.repo }}"
-      
-      - name: Echo bucket and file names
-        run: |
-          echo "owner=${{ inputs.owner }}"
-          echo "repo=${{ inputs.repo }}"
-
-      - name: Introduce an artificial failure
-        run: exit 1
 
       - name: Log into GitHub Container Registry (GHCR)
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login ghcr.io -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
