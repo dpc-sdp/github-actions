@@ -1,0 +1,47 @@
+name: set_status
+
+on:
+  workflow_call:
+    inputs:
+      description:
+        description: The description
+        type: string
+        required: true
+      context:
+        description: Name of the status
+        type: string
+        required: true
+      target_url:
+        description: The target URL to associate with this status
+        type: string
+        required: false
+      state:
+        description: Check state to set
+        type: string
+        required: false
+        default: ""
+
+jobs:
+  set_status:
+    name: set_status
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine workflow state if not explicitly provided
+        uses: technote-space/workflow-conclusion-action@v3
+        if: ${{ inputs.state == '' }}
+      - name: Set explicitly provided workflow state
+        if: ${{ inputs.state != '' }}
+        run: |
+          echo "WORKFLOW_CONCLUSION=${{ inputs.state }}" >> $GITHUB_ENV
+      - name: Set commit status in the GitHub API
+        run: |
+          curl -X POST \
+          -H "Authorization: token ${{ secrets.SDPDEPLOY_PAT }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }} \
+          -d "{
+                \"state\": \"${{ env.WORKFLOW_CONCLUSION }}\",
+                \"description\": \"${{ inputs.description }}\",
+                \"context\": \"${{ inputs.context }}\",
+                \"target_url\": \"${{ inputs.target_url }}\"
+              }"

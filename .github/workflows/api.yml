@@ -1,0 +1,108 @@
+name: api
+
+on:
+  workflow_call:
+    inputs:
+      be_url:
+        description: The backend URL for testing
+        type: string
+        required: true
+      project:
+        description: Lagoon project name
+        type: string
+        required: true
+        default: ""
+      slack_notify:
+        description: When to send the Slack notifications
+        type: string
+        required: false
+        default: "release_only"
+
+jobs:
+  api:
+    name: api
+    runs-on: biggy
+    container:
+      image: ghcr.io/dpc-sdp/bay/ci-builder:5.x
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      # GitHub Actions does not support cloning to a custom path.
+      - name: Copy repo
+        run: |
+          cp -R /__w/${GITHUB_REPOSITORY#*/}/${GITHUB_REPOSITORY#*/} /app
+      - name: Set up Environment variables
+        run: |
+          echo 'BE_BASE_URL=${{ inputs.be_url }}' >> $GITHUB_ENV
+      - name: Wake test target
+        run: |
+          curl ${BE_BASE_URL} -s -S --max-time 1000 --write-out '%{http_code}' --output /dev/null;
+      - name: Install dependencies
+        run: |
+          npm install -g newman newman-reporter-htmlextra
+          apk add jq
+      - name: Run core Newman API tests
+        run: |
+          cd /app
+          if [ -e tests/newman/tide.collection.json ]
+          then
+            if [[ ${TEST_NEWMAN_DISABLE_CORE} == true ]]
+            then
+              echo "==> Core Tests are disabled by env var TEST_NEWMAN_DISABLE_CORE. Skip the test."
+            else
+              case ${GITHUB_REF_NAME} in
+                standby|production)
+                  newman run tests/newman/tide.collection.json --folder default -e tests/newman/tide.environment.json --env-var "host=${BE_BASE_URL}" --env-var "branch=${GITHUB_REF_NAME}" --color on -r htmlextra --reporter-htmlextra-export ./report/tide.collection.report.html;;
+                *)
+                  newman run tests/newman/tide.collection.json -e tests/newman/tide.environment.json --env-var "host=${BE_BASE_URL}" --env-var "branch=${GITHUB_REF_NAME}" --color on -r htmlextra --reporter-htmlextra-export ./report/tide.collection.report.html;;
+              esac
+            fi
+          else
+            echo "==> No Postman API test collection is found. Skip the test."
+          fi
+      - name: Run custom Newman API tests
+        if: always()
+        run: |
+          if [ -e tests/newman/custom.collection.json ]
+          then
+            case ${GITHUB_REF_NAME} in
+              standby|production)
+                newman run tests/newman/custom.collection.json --folder default -e tests/newman/tide.environment.json --env-var "host=${BE_BASE_URL}" --env-var "branch=${GITHUB_REF_NAME}" --color on -r htmlextra --reporter-htmlextra-export ./report/custom.collection.report.html;;
+              *)
+                newman run tests/newman/custom.collection.json -e tests/newman/tide.environment.json --env-var "host=${BE_BASE_URL}" --env-var "branch=${GITHUB_REF_NAME}" --color on -r htmlextra --reporter-htmlextra-export ./report/custom.collection.report.html;;
+            esac
+          else
+            echo "==> No Postman API test collection is found. Skip the test."
+          fi
+      - name: Upload core API test report
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: core-test-report
+          path: /app/report/tide.collection.report.html
+      - name: Upload custom API test report
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: custom-test-report
+          path: /app/report/custom.collection.report.html
+  notify_slack:
+    uses: ./.github/workflows/notify_slack.yml
+    if: |
+      always() &&
+      ( inputs.slack_notify == 'always' ||
+        ( inputs.slack_notify == 'release_only' &&
+          ( startsWith(github.ref_name, 'release/') ||
+            contains(fromJSON('["uat", "master", "standby", "production"]'), github.ref_name)
+          )
+        )
+      )
+    needs: [api]
+    secrets: inherit
+    with:
+      workflow_name: BE API
+      test_type: ":postman:"
+      test_subtype: ":smoke-test:"
+      artifact_name: "core-test-report"
+      be_url: ${{ inputs.be_url }}
+      project: ${{ inputs.project }}

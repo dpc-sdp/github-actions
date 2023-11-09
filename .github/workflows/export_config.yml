@@ -1,0 +1,25 @@
+name: export_config
+
+on: workflow_call
+
+jobs:
+  build_tide:
+    name: export_config
+    runs-on: biggy
+    container:
+      image: ghcr.io/dpc-sdp/bay/ci-builder:5.x
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Configure Git
+        run: |
+          git config --global user.email "${{ secrets.DEPLOY_USER_EMAIL }}" && git config --global user.name "${{ secrets.DEPLOY_USER_NAME }}"
+      # GitHub Actions does not support cloning to a custom path.
+      - name: Copy repo
+        run: |
+          chown -R $(id -u):$(id -g) $PWD
+          cp -R /__w/${GITHUB_REPOSITORY#*/}/${GITHUB_REPOSITORY#*/} /app
+      - name: Run export script
+        run: |
+          cd /app
+          /app/.circleci/export-config.sh

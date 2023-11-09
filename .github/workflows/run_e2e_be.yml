@@ -43,7 +43,12 @@ on:
           required: true
         test_type:
           type: string
-          required: true
+          required: false
+          default: ':e2e:'
+        test_subtype:
+          type: string
+          required: false
+          default: ''
         runner:
           type: string
           required: false
@@ -57,19 +62,33 @@ on:
           type: string
           required: false
           default: "sdp-test-report-dev"
+        slack_notify:
+          description: When to send the Slack notifications
+          type: string
+          required: false
+          default: "release_only"
+        test_status:
+          type: boolean
+          default: false
 
 env:
   # Test users
-  BE_ADMIN_USER: ${{ secrets.BE_ADMIN_USER }}
-  BE_ADMIN_PASS: ${{ secrets.BE_ADMIN_PASS }}
-  BE_APPROVER_USER: ${{ secrets.BE_APPROVER_USER }}
-  BE_APPROVER_PASS: ${{ secrets.BE_APPROVER_PASS }}
-  BE_EDITOR_USER: ${{ secrets.BE_EDITOR_USER }}
-  BE_EDITOR_PASS: ${{ secrets.BE_EDITOR_PASS }}
+  BE_ADMIN_USER: ${{ secrets.TEST_BE_ADMIN_USER }}
+  BE_ADMIN_PASS: ${{ secrets.TEST_BE_ADMIN_PASS }}
+  BE_APPROVER_USER: ${{ secrets.TEST_BE_APPROVER_USER }}
+  BE_APPROVER_PASS: ${{ secrets.TEST_BE_APPROVER_PASS }}
+  BE_EDITOR_USER: ${{ secrets.TEST_BE_EDITOR_USER }}
+  BE_EDITOR_PASS: ${{ secrets.TEST_BE_EDITOR_PASS }}
+  BE_DATAIMPORTER_USER: ${{ secrets.TEST_BE_DATAIMPORTER_USER }}
+  BE_DATAIMPORTER_PASS: ${{ secrets.TEST_BE_DATAIMPORTER_PASS }}
+  BE_SITE_ADMIN_USER: ${{ secrets.TEST_BE_SITE_ADMIN_USER }}
+  BE_SITE_ADMIN_PASS: ${{ secrets.TEST_BE_SITE_ADMIN_PASS }}
+  BE_CONTRIBUTOR_USER: ${{ secrets.TEST_BE_CONTRIBUTOR_USER }}
+  BE_CONTRIBUTOR_PASS: ${{ secrets.TEST_BE_CONTRIBUTOR_PASS }}
   # Keys
-  BROWSERSTACK_USER: ${{ secrets.BROWSERSTACK_USER }}
-  BROWSERSTACK_KEY: ${{ secrets.BROWSERSTACK_KEY }}
-  CUCUMBER_PUBLISH_TOKEN: ${{ secrets.CUCUMBER_PUBLISH_TOKEN }}
+  BROWSERSTACK_USER: ${{ secrets.TEST_BROWSERSTACK_USER }}
+  BROWSERSTACK_KEY: ${{ secrets.TEST_BROWSERSTACK_KEY }}
+  CUCUMBER_PUBLISH_TOKEN: ${{ secrets.TEST_CUCUMBER_PUBLISH_TOKEN }}
   # Settings
   TESTID: ${{ inputs.test_id }}
   NIGHTWATCH_OUTPUT: true
@@ -123,23 +142,14 @@ jobs:
           name: test-results
           path: /app/reports/
       - 
-        name: Upload chromedriver log
-        uses: actions/upload-artifact@v2
-        if: always()
-        with:
-          name: chromedriver-log
-          path: /app/logs/
-      - 
         name: 'Add failed test result status to CMS'
-        if: |
-          failure()
+        if: inputs.test_status && failure()
         run: |
           cd /app
           TEST_STATUS=fail node -r ts-node/register -r tsconfig-paths/register scripts/addTestResult.ts
       - 
         name: 'Add succeeded test result status to CMS'
-        if: |
-          success()
+        if: inputs.test_status && success()
         run: |
           cd /app
           TEST_STATUS=pass node -r ts-node/register -r tsconfig-paths/register scripts/addTestResult.ts
@@ -148,18 +158,26 @@ jobs:
         uses: actions/upload-artifact@v2
         if: always()
         with:
-          name: report-url
+          name: ${{ inputs.name }}-report-url
           path: /app/reports/report-url.txt
   notify_slack:
     uses: ./.github/workflows/notify_slack.yml
-    if: always()
+    if: |
+      always() &&
+      ( inputs.slack_notify == 'always' ||
+        ( inputs.slack_notify == 'release_only' &&
+          ( startsWith(github.ref_name, 'release/') ||
+            contains(fromJSON('["uat", "master", "standby", "production"]'), github.ref_name)
+          )
+        )
+      )
     needs: [run_e2e_be]
     secrets: inherit
     with:
       workflow_name: ${{ inputs.name }}
-      test_type: ":nightwatch:"
-      test_subtype: ":nightwatch:"
-      artifact_name: "report-url"
+      test_type: ${{ inputs.test_type }}
+      test_subtype: ${{ inputs.test_subtype }}
+      artifact_name: "${{ inputs.name }}-report-url"
       be_url: ${{ inputs.be_url }}
       project: ${{ inputs.project }}
       slack_channel: ${{ inputs.slack_channel }}
