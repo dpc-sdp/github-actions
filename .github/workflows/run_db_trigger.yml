@@ -125,7 +125,7 @@ jobs:
           fields: 'project: ${{ inputs.project }}, repo: ${ { github.repository }}'
           mention: 'channel'
           author_name: 'DPC TEAM'
-          channel: '#dpc-devops-internal'
+          channel: '#dpc-events'
           color: 'good'  
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
