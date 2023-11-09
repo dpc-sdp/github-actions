@@ -1,4 +1,4 @@
-name: Reusable View MySQL Tables Workflow
+name: Reusable workflow to build MySQL database images 
 
 on:
   workflow_call:
@@ -37,7 +37,7 @@ on:
         required: true
       
 jobs:
-  view_tables:
+  db_image_build_push:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -98,14 +98,14 @@ jobs:
 
   notify_slack:
     runs-on: ubuntu-latest
-    needs: [view_tables] 
+    needs: [db_image_build_push] 
     if: ${{ always() }}  
     steps:
       - name: Send Notification to Slack on Failure
-        if: ${{ needs.view_tables.result == 'failure' }} 
+        if: ${{ needs.db_image_build_push.result == 'failure' }} 
         uses: 8398a7/action-slack@v3
         with:
-          status: ${{ needs.view_tables.result }}
+          status: ${{ needs.db_image_build_push.result }}
           text: 'Attention: The db-trigger workflow has FAILED in project "${{ inputs.project }}" for repo "${{ github.repository }}"!'
           fields: 'project: ${{ inputs.project }}, repo: ${ { github.repository }}'
           mention: 'here'
@@ -117,10 +117,10 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - name: Send Notification to Slack on Success
-        if: ${{ needs.view_tables.result == 'success' }}  
+        if: ${{ needs.db_image_build_push.result == 'success' }}  
         uses: 8398a7/action-slack@v3
         with:
-          status: ${{ needs.view_tables.result }}
+          status: ${{ needs.db_image_build_push.result }}
           text: 'The db-trigger workflow for project "${{ inputs.project }}" in repository "${{ github.repository }}" has succeeded.'
           fields: 'project: ${{ inputs.project }}, repo: ${ { github.repository }}'
           mention: 'channel'

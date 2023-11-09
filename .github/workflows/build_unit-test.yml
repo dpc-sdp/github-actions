@@ -1,4 +1,4 @@
-name: Reusable CI/CD Workflow
+name: Reusable workflow for ripple builds
 
 on:
   workflow_call:
