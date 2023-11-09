@@ -110,7 +110,7 @@ jobs:
           fields: 'project: ${{ inputs.project }}, repo: ${ { github.repository }}'
           mention: 'here'
           author_name: 'DPC TEAM'
-          channel: '#dpc-devops-internal'
+          channel: '#dpc-events'
           color: 'danger'  
           if_mention: 'always'
         env:
