@@ -50,6 +50,13 @@ jobs:
         with:
           submodules: true
 
+      - name: Checkout Dockerfile from central repository
+        uses: actions/checkout@v2
+        with:
+          repository: 'dpc-sdp/bay' 
+          ref: 'feature/rmk-db-trigger' 
+          path: 'bay'
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
 
@@ -78,7 +85,8 @@ jobs:
         id: build-and-push
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
-          context: .
+          context: ./bay/images/mariadb-ci 
+          file: ./bay/images/mariadb-ci/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ghcr.io/${{ github.repository_owner }}/${{ env.REPO_NAME }}/db:production-latest
           labels: ${{ steps.meta.outputs.labels }}
