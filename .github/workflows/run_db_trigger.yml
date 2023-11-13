@@ -45,7 +45,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-      id-token: none
+
 
     steps:
       - name: Checkout repository
