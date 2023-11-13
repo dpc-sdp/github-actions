@@ -60,6 +60,18 @@ jobs:
           ref: 'feature/rmk-db-trigger' 
           path: 'bay'
 
+      - name: List S3 Bucket for Debugging
+        run: |
+          echo "Listing contents of the S3 bucket at the provided path for debugging purposes..."
+          # The following command will list the contents at the provided path
+          aws s3 ls s3://bay-db-image/content-solar-vic-gov-au-production.sql
+          # Using the --output text option to get the caller identity for debugging without revealing actual values
+          aws sts get-caller-identity --output text
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: 'ap-southeast-2' 
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
 
