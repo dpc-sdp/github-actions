@@ -23,10 +23,7 @@ on:
         description: 'File Name in S3'
         required: true
         type: string
-      docker_token:
-        description: 'docker_token'
-        required: true
-        type: string
+
         
     secrets:
       AWS_ACCESS_KEY_ID:
