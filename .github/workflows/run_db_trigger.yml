@@ -31,8 +31,7 @@ on:
         required: true
       SLACK_WEBHOOK_URL:
         required: true
-      SDPDEPLOY_PAT:
-        required: true
+
 
 env:
   REGISTRY: ghcr.io
