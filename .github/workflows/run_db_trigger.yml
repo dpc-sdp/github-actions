@@ -74,8 +74,12 @@ jobs:
       - name: Debug GitHub Actor
         run: echo "The value of github.actor is ${{ github.actor }}"
 
-      - name: Log into GitHub Container Registry (GHCR)
-        run: echo "${{ github.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Log into registry GHCR
+        uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract Docker metadata
         id: meta
