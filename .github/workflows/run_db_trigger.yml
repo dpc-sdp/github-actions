@@ -32,7 +32,8 @@ on:
         required: true
       SLACK_WEBHOOK_URL:
         required: true
-
+      DOCKER_TOKEN: 
+        required: true
 
 env:
   REGISTRY: ghcr.io
@@ -76,7 +77,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.DOCKER_TOKEN }}
 
 
       - name: Extract Docker metadata
