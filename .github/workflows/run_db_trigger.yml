@@ -32,8 +32,7 @@ on:
         required: true
       SLACK_WEBHOOK_URL:
         required: true
-      DOCKER_TOKEN: 
-        required: true
+
 
 env:
   REGISTRY: ghcr.io
