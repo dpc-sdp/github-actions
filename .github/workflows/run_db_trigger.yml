@@ -44,7 +44,7 @@ jobs:
       id-token: write
     env:
       REGISTRY: ghcr.io
-      IMAGE_NAME: ${{ github.repository_owner }}/${{ github.repository }}/mariadb
+      IMAGE_NAME: ${{ github.repository }}/mariadb
       TMP_DATA_DIR: data
       DB_FILE: db.sql
     steps:
