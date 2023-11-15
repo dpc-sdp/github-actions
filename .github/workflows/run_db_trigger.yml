@@ -140,14 +140,14 @@ jobs:
   
   notify_slack:
     runs-on: ubuntu-latest
-    needs: [db_image_build_push] 
+    needs: [export-db] 
     if: ${{ always() }}  
     steps:
       - name: Send Notification to Slack on Failure
-        if: ${{ needs.db_image_build_push.result == 'failure' }} 
+        if: ${{ needs.export-db.result == 'failure' }} 
         uses: 8398a7/action-slack@v3
         with:
-          status: ${{ needs.db_image_build_push.result }}
+          status: ${{ needs.export-db.result }}
           text: 'Attention: The db-trigger workflow has FAILED in project "${{ inputs.project }}" for repo "${{ github.repository }}"!'
           fields: 'project: ${{ inputs.project }}, repo: ${ { github.repository }}'
           mention: 'here'
@@ -159,10 +159,10 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - name: Send Notification to Slack on Success
-        if: ${{ needs.db_image_build_push.result == 'success' }}  
+        if: ${{ needs.export-db.result == 'success' }}  
         uses: 8398a7/action-slack@v3
         with:
-          status: ${{ needs.db_image_build_push.result }}
+          status: ${{ needs.export-db.result }}
           text: 'The db-trigger workflow for project "${{ inputs.project }}" in repository "${{ github.repository }}" has succeeded.'
           fields: 'project: ${{ inputs.project }}, repo: ${ { github.repository }}'
           mention: 'channel'
