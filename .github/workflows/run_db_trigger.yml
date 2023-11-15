@@ -19,10 +19,7 @@ on:
         description: 'S3 URI'
         required: true
         type: string
-      file_name:
-        description: 'File Name in S3'
-        required: true
-        type: string
+
 
         
     secrets:
