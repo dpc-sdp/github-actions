@@ -148,7 +148,7 @@ jobs:
       - 
         name: Report test results
         if: always()
-        uses: dpc-sdp/github-actions/actions/test-report@stdpa-933-test-summary
+        uses: dpc-sdp/github-actions/actions/test-report@sdpta-933-test-summary
         with:
           report_name: 'test-reports-${{ inputs.name }}'
       - 
