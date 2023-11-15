@@ -154,6 +154,12 @@ jobs:
           cd /app
           TEST_STATUS=pass node -r ts-node/register -r tsconfig-paths/register scripts/addTestResult.ts
       - 
+        name: Report test results
+        if: always()
+        uses: ./.github/actions/test-report@stdpa-933-test-summary
+        with:
+          report_name: 'test-reports-${{ inputs.name }}'
+      - 
         name: Store Cucumber Cloud test report URL
         uses: actions/upload-artifact@v2
         if: always()

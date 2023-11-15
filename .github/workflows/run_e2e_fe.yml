@@ -146,6 +146,12 @@ jobs:
           Xvfb :99 -screen 0 1920x1080x24 &
           NIGHTWATCH_BROWSER="${{ inputs.browser }}" npm run cucumber:${{ inputs.app }} -- --tags "${{ inputs.tags }}" --retry "${{ inputs.retry }}" --parallel "${{ inputs.parallel }}"
       - 
+        name: Report test results
+        if: always()
+        uses: ./.github/actions/test-report@stdpa-933-test-summary
+        with:
+          report_name: 'test-reports-${{ inputs.name }}'
+      - 
         name: Store Cucumber Cloud test report URL
         uses: actions/upload-artifact@v2
         if: always()
