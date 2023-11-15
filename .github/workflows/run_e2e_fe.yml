@@ -148,7 +148,7 @@ jobs:
       -
         name: Report test results
         if: always()
-        uses: ./.github/actions/test-report
+        uses: dpc-sdp/github-actions/.github/actions/test-report@main
         with:
           report_name: 'test-reports-${{ inputs.name }}'
       - 
