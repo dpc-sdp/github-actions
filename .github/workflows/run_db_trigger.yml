@@ -56,7 +56,7 @@ jobs:
           echo "id=$CONTAINER_ID" >> $GITHUB_OUTPUT
 
       - name: Configure AWS actions
-        uses: aws-actions/configure-aws-credentials@v4.0.1
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -100,7 +100,7 @@ jobs:
         run: docker stop "${{ steps.container.outputs.id }}"
 
       - name: Download the DB image dockerfile
-        run: curl -o Dockerfile.seed https://raw.githubusercontent.com/dpc-sdp/github-actions/fa8427babd2143086d4f3d1579b4ad7c7a0e7e78/.docker/Dockerfile.seed
+        run: curl -o Dockerfile.seed https://raw.githubusercontent.com/dpc-sdp/github-actions/main/.docker/Dockerfile.seed
 
       # Login against a Docker registry except on PR
       # https://github.com/docker/login-action
