@@ -99,9 +99,8 @@ jobs:
       - name: Stop the intermediary container
         run: docker stop "${{ steps.container.outputs.id }}"
 
-      # @todo: Move this file to Bay.
       - name: Download the DB image dockerfile
-        run: curl -o Dockerfile.seed https://gist.githubusercontent.com/steveworley/cce5d70f6755b16f8b630f17f680f48f/raw/1f01b3fbc1de633870aaeb02cf779f083155e580/gistfile1.txt
+        run: curl -o Dockerfile.seed https://raw.githubusercontent.com/dpc-sdp/github-actions/fa8427babd2143086d4f3d1579b4ad7c7a0e7e78/.docker/Dockerfile.seed
 
       # Login against a Docker registry except on PR
       # https://github.com/docker/login-action
