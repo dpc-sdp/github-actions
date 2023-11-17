@@ -11,6 +11,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Uncomment database snapshot environment variable
+        run: |
+          sed -i 's|# DB_IMAGE_SNAPSHOT|DB_IMAGE_SNAPSHOT|' .env
       # GitHub Actions does not support cloning to a custom path.
       - name: Copy repo
         run: |
