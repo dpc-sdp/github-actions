@@ -33,6 +33,10 @@ jobs:
       - name: Run build script
         run: |
           /app/.circleci/build.sh
+      - name: Run docker ps
+        if: always()
+        run: |
+          docker ps
       - name: Run test script
         if: always()
         run: |
