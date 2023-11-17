@@ -23,9 +23,6 @@ jobs:
       - name: Uncomment database snapshot environment variable
         run: |
           sed -i 's|# DB_IMAGE_SNAPSHOT|DB_IMAGE_SNAPSHOT|' .env
-      - name: Print the contents of the .env file after modification
-        run: |
-          cat .env
       # GitHub Actions does not support cloning to a custom path.
       - name: Copy repo
         run: |
@@ -33,10 +30,6 @@ jobs:
       - name: Run build script
         run: |
           /app/.circleci/build.sh
-      - name: Run docker ps
-        if: always()
-        run: |
-          docker ps
       - name: Run test script
         if: always()
         run: |
