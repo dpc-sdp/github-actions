@@ -141,7 +141,7 @@ jobs:
           curl ${FE_BASE_URL} -s -S --max-time 1000 --write-out '%{http_code}' --output /dev/null;
       -
         name: Install chrome driver
-        run: ./node_modules/selenium-webdriver/bin/linux/selenium-manager --browser chrome
+        run: /app/node_modules/selenium-webdriver/bin/linux/selenium-manager --browser chrome
         shell: bash
       -
         name: run e2e test
