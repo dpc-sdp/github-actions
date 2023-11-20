@@ -3,8 +3,9 @@ name: export_config
 on: workflow_call
 
 jobs:
-  build_tide:
+  export_config:
     name: export_config
+    if: startsWith(github.event.branches[0].name, 'automation/')
     runs-on: biggy
     container:
       image: ghcr.io/dpc-sdp/bay/ci-builder:5.x

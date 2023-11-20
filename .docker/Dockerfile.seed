@@ -1,0 +1,13 @@
+FROM ghcr.io/dpc-sdp/bay/mariadb:5.x
+
+ARG DATA_DIR=/tmp/data
+
+COPY $DATA_DIR /var/lib/mysql
+
+USER root
+
+RUN chown -R mysql /var/lib/mysql \
+    && chgrp -R mysql /var/lib/mysql \
+    && /bin/fix-permissions /var/lib/mysql
+
+USER mysql
