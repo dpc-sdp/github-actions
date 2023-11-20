@@ -134,6 +134,12 @@ jobs:
           cd /app
           Xvfb :99 -screen 0 1920x1080x24 &
           NIGHTWATCH_BROWSER="${{ inputs.browser }}" npm run cucumber:${{ inputs.app }} -- --tags "${{ inputs.tags }}" --retry "${{ inputs.retry }}" --parallel "${{ inputs.parallel }}"
+      -
+        name: Report test results
+        if: always()
+        uses: dpc-sdp/github-actions/.github/actions/test-report@main
+        with:
+          report_name: 'test-reports-${{ inputs.name }}'
       - 
         name: Upload test results
         uses: actions/upload-artifact@v3
