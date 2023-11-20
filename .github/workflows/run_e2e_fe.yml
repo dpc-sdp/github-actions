@@ -153,7 +153,7 @@ jobs:
           report_name: 'test-reports-${{ inputs.name }}'
       - 
         name: Store Cucumber Cloud test report URL
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: ${{ inputs.name }}-report-url

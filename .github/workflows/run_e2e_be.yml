@@ -136,7 +136,7 @@ jobs:
           NIGHTWATCH_BROWSER="${{ inputs.browser }}" npm run cucumber:${{ inputs.app }} -- --tags "${{ inputs.tags }}" --retry "${{ inputs.retry }}" --parallel "${{ inputs.parallel }}"
       - 
         name: Upload test results
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: test-results
@@ -155,7 +155,7 @@ jobs:
           TEST_STATUS=pass node -r ts-node/register -r tsconfig-paths/register scripts/addTestResult.ts
       - 
         name: Store Cucumber Cloud test report URL
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: ${{ inputs.name }}-report-url
