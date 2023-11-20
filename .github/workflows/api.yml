@@ -75,13 +75,13 @@ jobs:
             echo "==> No Postman API test collection is found. Skip the test."
           fi
       - name: Upload core API test report
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: core-test-report
           path: /app/report/tide.collection.report.html
       - name: Upload custom API test report
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: custom-test-report
