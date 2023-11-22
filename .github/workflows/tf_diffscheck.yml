@@ -1,0 +1,59 @@
+name: Terraform plan
+on:
+  workflow_call:
+    inputs:
+      region:
+        description: AWS region for the state file
+        type: string
+        required: false
+        default: ap-southeast-2
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
+jobs:
+
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.7
+
+      - name: Terraform fmt
+        id: fmt
+        run: terraform fmt -check
+
+      - name: Initialize Terraform
+        id: init
+        run: terraform init
+
+      - name: Terraform plan
+        id: plan
+        run: terraform plan -input=false -out=tfplan -no-color -detailed-exitcode
+
+      - name: No diff notify
+        id: no-diff-notify
+        if: steps.plan.outputs.exitcode != 2
+        run: echo "No diffs detected - terminating."
+
+      - name: notify_slack
+        uses: slackapi/slack-github-action@v1.24.0
+        if: steps.plan.outputs.exitcode == 2
+        env:
+          REPO_NAME: ${{ github.repository }}
+          REPO_URL: ${{ github.event.repository.html_url }}
+          SLACK_BOT_TOKEN: ${{ secrets.TF_NOTIFICATIONS_SLACK_TOKEN }}
+        with:
+          channel-id: ${{ inputs.slack_channel }}
+          slack-message: Diffs detected in [$REPO_NAME]($REPO_URL)
