@@ -43,12 +43,12 @@ jobs:
         id: plan
         run: terraform plan -input=false -out=tfplan -no-color -detailed-exitcode
 
-      - name: No diff notify
-        id: no-diff-notify
+      - name: No diff - exit
+        id: no_diff_exit
         if: steps.plan.outputs.exitcode != 2
         run: echo "No diffs detected - terminating."
 
-      - name: Test Slack notification
+      - name: Send Slack notification
         id: notify_slack
         uses: slackapi/slack-github-action@v1.24.0
         if: steps.plan.outputs.exitcode == 2
