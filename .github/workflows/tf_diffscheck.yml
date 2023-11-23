@@ -20,7 +20,7 @@ env:
   SUMOLOGIC_ACCESSKEY: ${{ secrets.SUMOLOGIC_ACCESSKEY }}
 
 jobs:
-  plan:
+  diffscheck:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -59,4 +59,4 @@ jobs:
           LINK: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           channel-id: ${{ inputs.slack_channel }}
-          slack-message: Diffs detected in [$REPO_NAME]($REPO_URL)\n $LINK
+          slack-message: Diffs detected in ${{ env.REPO_NAME }}\n ${{ env.LINK }}
