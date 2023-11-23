@@ -51,7 +51,7 @@ jobs:
       - name: Test Slack notification
         id: notify_slack
         uses: slackapi/slack-github-action@v1.24.0
-        if: steps.plan.outputs.exitcode != 2
+        if: steps.plan.outputs.exitcode == 2
         env:
           REPO_NAME: ${{ github.repository }}
           REPO_URL: ${{ github.event.repository.html_url }}
@@ -59,4 +59,4 @@ jobs:
           LINK: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           channel-id: ${{ inputs.slack_channel }}
-          slack-message: "Diffs detected in ${{ env.REPO_NAME }}\n ${{ env.LINK }}"
+          slack-message: "Diffs detected in ${{ env.REPO_NAME }}\n${{ env.LINK }}"
