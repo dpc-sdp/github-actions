@@ -20,7 +20,7 @@ env:
   SUMOLOGIC_ACCESSKEY: ${{ secrets.SUMOLOGIC_ACCESSKEY }}
 
 jobs:
-  diffscheck:
+  sdp-gha:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
