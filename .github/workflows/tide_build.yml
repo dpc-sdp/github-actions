@@ -8,7 +8,6 @@ env:
 jobs:
   build_tide:
     name: tide_build
-    if: "!startsWith(github.ref, 'refs/heads/automation/') && !startsWith(github.ref, 'refs/heads/api') && !startsWith(github.ref, 'refs/heads/api-edge')"
     runs-on: biggy
     container:
       image: ghcr.io/dpc-sdp/bay/ci-builder:5.x
