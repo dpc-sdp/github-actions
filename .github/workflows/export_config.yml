@@ -5,7 +5,7 @@ on: workflow_call
 jobs:
   export_config:
     name: export_config
-    if: startsWith(github.event.branches[0].name, 'automation/')
+    if: startsWith(github.ref, 'refs/heads/automation/')
     runs-on: biggy
     container:
       image: ghcr.io/dpc-sdp/bay/ci-builder:5.x
