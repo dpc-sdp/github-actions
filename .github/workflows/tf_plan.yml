@@ -42,7 +42,15 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        run: terraform plan -no-color
+        run: terraform plan -no-color -input=false -out=tfplan
+
+      - name: Render plan diff
+        id: show
+        run: terraform show -no-color tfplan > tfplan.txt
+
+      - name: Render plan for PR comment
+        id: plan_output
+        run: echo "plan_output=$(cat tfplan.txt)" >> $GITHUB_OUTPUT
 
       - uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
@@ -78,7 +86,7 @@ jobs:
             <details><summary>Show Plan</summary>
 
             \`\`\`\n
-            ${process.env.PLAN}
+            ${{ steps.plan_output.outputs.plan_output }}
             \`\`\`
 
             </details>
