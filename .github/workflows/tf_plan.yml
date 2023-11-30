@@ -14,6 +14,9 @@ env:
   AWS_DEFAULT_REGION: ${{ inputs.aws_default_region }}
   SUMOLOGIC_ACCESSID: ${{ secrets.SUMOLOGIC_ACCESSID }}
   SUMOLOGIC_ACCESSKEY: ${{ secrets.SUMOLOGIC_ACCESSKEY }}
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
 
 jobs:
 
@@ -27,6 +30,10 @@ jobs:
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.5.7
+      
+      - name: az login
+        if: ${{ env.AZURE_CLIENT_ID != '' }}
+        run: az login
 
       - name: Terraform fmt
         id: fmt
