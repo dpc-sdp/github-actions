@@ -50,7 +50,9 @@ jobs:
 
       - name: Render plan for PR comment
         id: plan_output
-        run: echo "plan_output=$(cat tfplan.txt)" >> $GITHUB_OUTPUT
+        run: |
+          plan_output=$(cat tfplan.txt)"
+          echo "plan_output=$plan_output" >> $GITHUB_OUTPUT
 
       - uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
