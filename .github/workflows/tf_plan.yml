@@ -31,9 +31,9 @@ jobs:
         with:
           terraform_version: 1.5.7
       
-      - name: az login
-        if: ${{ env.ARM_CLIENT_ID != '' }}
-        run: az login
+      # - name: az login
+      #   if: ${{ env.ARM_CLIENT_ID != '' }}
+      #   run: az login
 
       - name: Terraform fmt
         id: fmt
