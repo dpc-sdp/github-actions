@@ -49,10 +49,6 @@ jobs:
         id: show
         run: terraform show -no-color tfplan > tfplan.txt
 
-      - name: Render plan diff
-        id: debug
-        run: cat tfplan.txt
-
       - name: Render plan for PR comment
         id: tf_output
         run: |
