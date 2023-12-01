@@ -59,7 +59,7 @@ jobs:
             echo 'PLAN_OUTPUT<<EOF'
             cat tfplan.txt
             echo EOF
-          } >> "$GITHUB_OUTPUT"
+          } >> $GITHUB_OUTPUT
 
       - uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
