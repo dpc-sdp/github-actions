@@ -18,6 +18,11 @@ env:
   AWS_DEFAULT_REGION: ${{ inputs.aws_default_region }}
   SUMOLOGIC_ACCESSID: ${{ secrets.SUMOLOGIC_ACCESSID }}
   SUMOLOGIC_ACCESSKEY: ${{ secrets.SUMOLOGIC_ACCESSKEY }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+  EC_API_KEY: ${{ secrets.EC_API_KEY }}
 
 jobs:
   diffscheck:
