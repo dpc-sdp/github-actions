@@ -57,9 +57,11 @@ jobs:
       - name: Render plan for PR comment
         id: tf_output
         run: |
-          echo 'PLAN_OUTPUT<<EOF' >> $GITHUB_OUTPUT
-          cat tfplan.txt >> $GITHUB_OUTPUT
-          echo 'EOF' >> $GITHUB_OUTPUT
+          {
+            echo 'PLAN_OUTPUT<<EOF'
+            cat tfplan.txt
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
 
 
       - uses: actions/github-script@v6
