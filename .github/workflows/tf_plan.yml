@@ -49,10 +49,13 @@ jobs:
         run: terraform show -no-color tfplan > tfplan.txt
 
       - name: Render plan for PR comment
-        id: plan_output
+        id: tf_output
         run: |
-          plan_output=$(cat tfplan.txt)
-          echo "plan_var=$plan_output" >> "$GITHUB_OUTPUT"
+          {
+            echo 'PLAN_OUTPUT<<EOF'
+            cat tfplan.txt
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
 
       - uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
