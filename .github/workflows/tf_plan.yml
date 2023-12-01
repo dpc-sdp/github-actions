@@ -52,7 +52,7 @@ jobs:
         id: plan_output
         run: |
           plan_output=$(cat tfplan.txt)
-          echo "plan_output=$plan_output" >> $GITHUB_OUTPUT
+          echo "plan_var=$plan_output" >> "$GITHUB_OUTPUT"
 
       - uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
