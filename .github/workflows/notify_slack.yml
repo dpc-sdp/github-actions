@@ -19,7 +19,7 @@ on:
       slack_channel:
         type: string
         required: false
-        default: "sdp-test-report-dev"
+        default: "sdp-test-report"
       workflow_name:
         type: string
         required: true
