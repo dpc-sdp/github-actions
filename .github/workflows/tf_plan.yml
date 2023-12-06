@@ -25,7 +25,7 @@ jobs:
 
   plan:
     runs-on:
-      group: Default
+      group: organization/Default
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
