@@ -3,7 +3,7 @@ name: tide_build
 on: 
   workflow_call:
     inputs:
-      install_dev_tools:
+      module_build:
         description: Set to true to install dev-tools before building the project.
         type: string
         required: false
@@ -33,10 +33,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Uncomment database snapshot environment variable
+        if: ${{ inputs.module_build != 'true' }}
         run: |
           sed -i 's|# DB_IMAGE_SNAPSHOT|DB_IMAGE_SNAPSHOT|' .env
       - name: Install dev-tools
-        if: ${{ inputs.install_dev_tools == 'true' }}
+        if: ${{ inputs.module_build == 'true' }}
         run: |
           echo ==> Installing dev-tools...
           if [ -f "./dev-tools.sh" ] && [ ! "$DEV_TOOLS" ]; then ./dev-tools.sh; fi
