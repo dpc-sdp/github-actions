@@ -8,6 +8,11 @@ on:
         type: string
         required: false
         default: false
+      runner:
+        description: Name of the runner instance to use.
+        type: string
+        required: false
+        default: biggy
 
 env:
   REGISTRY: ghcr.io
@@ -15,7 +20,7 @@ env:
 jobs:
   build_tide:
     name: tide_build
-    runs-on: biggy
+    runs-on: ${{ inputs.runner }}
     container:
       image: ghcr.io/dpc-sdp/bay/ci-builder:5.x
     steps:
