@@ -1,6 +1,13 @@
 name: tide_build
 
-on: workflow_call
+on: 
+  workflow_call:
+    inputs:
+      install_dev_tools:
+        description: Set to true to install dev-tools before building the project.
+        type: string
+        required: false
+        default: false
 
 env:
   REGISTRY: ghcr.io
@@ -23,6 +30,11 @@ jobs:
       - name: Uncomment database snapshot environment variable
         run: |
           sed -i 's|# DB_IMAGE_SNAPSHOT|DB_IMAGE_SNAPSHOT|' .env
+      - name: Install dev-tools
+        if: ${{ inputs.install_dev_tools == 'true' }}
+        run: |
+          echo ==> Installing dev-tools...
+          if [ -f "./dev-tools.sh" ] && [ ! "$DEV_TOOLS" ]; then ./dev-tools.sh; fi
       # GitHub Actions does not support cloning to a custom path.
       - name: Copy repo
         run: |
