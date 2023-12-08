@@ -19,6 +19,10 @@ on:
         description: 'S3 URI'
         required: true
         type: string
+      runner:
+        type: string
+        required: false
+        default: ubuntu-latest
 
 
         
@@ -37,7 +41,7 @@ env:
     
 jobs:
   export-db:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     permissions:
       contents: read
       packages: write
