@@ -1,0 +1,14 @@
+name: tide_merge_to_reference
+
+on: workflow_call
+
+jobs:
+  tide_merge_to_reference:
+    name: tide_merge_to_reference
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/dpc-sdp/bay/ci-builder:5.x
+    steps:
+      - name: Merge to reference branch
+        run: |
+          /__w/${GITHUB_REPOSITORY#*/}/${GITHUB_REPOSITORY#*/}/.circleci/merge-to-reference.sh
