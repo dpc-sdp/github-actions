@@ -8,6 +8,11 @@ on:
         type: string
         required: false
         default: false
+      module_build_suggest:
+        description: Set to true to enabled build-suggest configuration for a project build.
+        type: string
+        required: false
+        default: false
       runner:
         description: Name of the runner instance to use.
         type: string
@@ -41,6 +46,13 @@ jobs:
         run: |
           echo ==> Installing dev-tools...
           if [ -f "./dev-tools.sh" ] && [ ! "$DEV_TOOLS" ]; then ./dev-tools.sh; fi
+      - name: Export build-suggest environment variables
+        if: ${{ inputs.module_build_suggest == 'true' }}
+        run: |
+          echo "INSTALL_NEW_SITE=1" >> $GITHUB_ENV
+          echo "LAGOON_ENVIRONMENT_TYPE=ci" >> $GITHUB_ENV
+          echo "INSTALL_SUGGEST=1" >> $GITHUB_ENV
+          echo "BEHAT_PROFILE='--profile=suggest'" >> $GITHUB_ENV
       # GitHub Actions does not support cloning to a custom path.
       - name: Copy repo
         run: |
