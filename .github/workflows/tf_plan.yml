@@ -7,6 +7,11 @@ on:
         type: string
         required: false
         default: ap-southeast-2
+      tf_github_owner:
+        description: Terraform GitHub repo owner
+        type: string
+        required: false
+        default: dpc-sdp
 
 env:
   ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
@@ -17,15 +22,13 @@ env:
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   AWS_DEFAULT_REGION: ${{ inputs.aws_default_region }}
   EC_API_KEY: ${{ secrets.EC_API_KEY }}
-  GITHUB_OWNER: ${{ vars.TF_GITHUB_OWNER }}
+  GITHUB_OWNER: ${{ inputs.tf_github_owner }}
   SUMOLOGIC_ACCESSID: ${{ secrets.SUMOLOGIC_ACCESSID }}
   SUMOLOGIC_ACCESSKEY: ${{ secrets.SUMOLOGIC_ACCESSKEY }}
 
 jobs:
-
   plan:
-    runs-on:
-      group: organization/Default
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
