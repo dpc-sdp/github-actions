@@ -6,8 +6,6 @@ jobs:
   tide_merge_to_reference:
     name: tide_merge_to_reference
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/dpc-sdp/bay/ci-builder:5.x
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
