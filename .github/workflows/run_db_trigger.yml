@@ -29,11 +29,11 @@ on:
         required: true
       AWS_SECRET_ACCESS_KEY:
         required: true
-      SLACK_WEBHOOK_URL:
+      REGISTRY_TOKEN:
         required: true
       REGISTRY_USER:
         required: true
-      REGISTRY_TOKEN:
+      SLACK_WEBHOOK_URL:
         required: true
 
 env:
