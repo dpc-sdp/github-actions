@@ -29,7 +29,8 @@ env:
 jobs:
   apply:
     environment: ${{ inputs.environment }}
-    runs-on: ubuntu-latest
+    runs-on:
+      group: organization/Default
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
