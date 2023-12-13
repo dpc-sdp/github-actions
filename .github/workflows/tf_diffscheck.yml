@@ -13,16 +13,17 @@ on:
         default: "ops"
 
 env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  AWS_DEFAULT_REGION: ${{ inputs.aws_default_region }}
-  SUMOLOGIC_ACCESSID: ${{ secrets.SUMOLOGIC_ACCESSID }}
-  SUMOLOGIC_ACCESSKEY: ${{ secrets.SUMOLOGIC_ACCESSKEY }}
   ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
   ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
   ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
   ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: ${{ inputs.aws_default_region }}
   EC_API_KEY: ${{ secrets.EC_API_KEY }}
+  GITHUB_OWNER: ${{ vars.TF_GITHUB_OWNER }}
+  SUMOLOGIC_ACCESSID: ${{ secrets.SUMOLOGIC_ACCESSID }}
+  SUMOLOGIC_ACCESSKEY: ${{ secrets.SUMOLOGIC_ACCESSKEY }}
 
 jobs:
   diffscheck:
