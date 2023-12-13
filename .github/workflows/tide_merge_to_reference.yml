@@ -14,5 +14,4 @@ jobs:
           git config --global user.email "${{ secrets.DEPLOY_USER_EMAIL }}" && git config --global user.name "${{ secrets.DEPLOY_USER_NAME }}"
       - name: Merge to reference branch
         run: |
-          chmod +x .circleci/merge-to-reference.sh
-          .circleci/merge-to-reference.sh
+          bash .circleci/merge-to-reference.sh
