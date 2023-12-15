@@ -2,6 +2,9 @@ name: export_config
 
 on: workflow_call
 
+env:
+  REGISTRY: ghcr.io
+
 jobs:
   export_config:
     name: export_config
