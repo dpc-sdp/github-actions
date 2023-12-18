@@ -37,7 +37,7 @@ env:
     
 jobs:
   export-db:
-    runs-on: ubuntu-latest
+    runs-on: biggy
     permissions:
       contents: read
       packages: write
