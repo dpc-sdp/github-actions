@@ -98,6 +98,7 @@ env:
   NIGHTWATCH_OUTPUT: true
   CIRCLE_BRANCH: ${{ github.event.pull_request && github.head_ref || github.ref_name }}
   EYES_APPNAME: ${{ inputs.eyes_appname }}
+  NIGHTWATCH_TIMEOUT: 59000
 
 jobs:
   run_e2e_fe:
