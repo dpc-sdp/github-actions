@@ -1,0 +1,23 @@
+name: Container action
+on:
+  workflow_call:
+    inputs:
+      who-to-greet:
+        description: 'Who to greet'
+        required: true
+        default: 'World'
+        type: string
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hello world action step
+        # Uses an action in the root directory
+        uses: dpc-sdp/action-container@main
+        id: hello
+        with:
+          # Explicit input from the caller.
+          who-to-greet: ${{ inputs.who-to-greet }}
+          # Inherited secret from the caller.
+          my-other-var: ${{ secrets.TEST_VAR }}
