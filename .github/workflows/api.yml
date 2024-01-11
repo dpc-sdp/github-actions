@@ -55,7 +55,7 @@ jobs:
           else
             echo "==> No Postman API test collection is found. Skip the test."
           fi
-          
+
           # cd /app
           # if [ -e tests/newman/tide.collection.json ]
           # then
@@ -101,15 +101,6 @@ jobs:
           path: /app/report/custom.collection.report.html
   notify_slack:
     uses: ./.github/workflows/notify_slack.yml
-    if: |
-      always() &&
-      ( inputs.slack_notify == 'always' ||
-        ( inputs.slack_notify == 'release_only' &&
-          ( startsWith(github.ref_name, 'release/') ||
-            contains(fromJSON('["uat", "master", "standby", "production"]'), github.ref_name)
-          )
-        )
-      )
     needs: [api]
     secrets: inherit
     with:
@@ -119,3 +110,4 @@ jobs:
       artifact_name: "core-test-report"
       be_url: ${{ inputs.be_url }}
       project: ${{ inputs.project }}
+      slack_channel: sdp-test-report-dev
