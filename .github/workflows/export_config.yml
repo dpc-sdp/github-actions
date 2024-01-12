@@ -39,3 +39,13 @@ jobs:
         run: |
           cd /app
           /app/.circleci/export-config.sh
+      - name: Get the release branch
+        run: |
+          CURRENT_GIT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+          echo RELEASE_GIT_BRANCH="${CURRENT_GIT_BRANCH//automation/release}" >> $GITHUB_ENV
+      - name: Manually run build workflow
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: build
+          repo: ${{ secrets.GITHUB_REPOSITORY }}
+          ref: ${{ env.RELEASE_GIT_BRANCH }}
