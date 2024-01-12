@@ -52,6 +52,9 @@ jobs:
               *)
                 newman run tests/newman/tide.collection.json -e tests/newman/tide.environment.json --env-var "host=${BE_BASE_URL}" --env-var "branch=${GITHUB_REF_NAME}" --color on -r htmlextra --reporter-htmlextra-export ./report/tide.collection.report.html;;
             esac
+
+            echo "Contents of the 'report' folder:"
+            ls -l ./report
           else
             echo "==> No Postman API test collection is found. Skip the test."
           fi
@@ -88,13 +91,13 @@ jobs:
             echo "==> No Postman API test collection is found. Skip the test."
           fi
       - name: Upload core API test report
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: core-test-report
           path: /app/report/tide.collection.report.html
       - name: Upload custom API test report
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: custom-test-report
