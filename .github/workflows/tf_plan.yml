@@ -55,14 +55,24 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        run: terraform plan -no-color -input=false -out=tfplan -detailed-exitcode
+        run: |
+          terraform plan -no-color -input=false -out=tfplan -detailed-exitcode
+          echo "exitcode=$?" >> "$GITHUB_OUTPUT"
+
+      - name: Check Terraform Plan
+        if: ${{ failure() && steps.plan.outputs.exitcode == 2 }}
+        run: |
+          echo "Terraform plan returned ${{ steps.plan.outputs.exitcode }}"
+          echo "2 = Succeeded with non-empty diff (changes present) "
 
       - name: Render plan diff
         id: show
+        if: ${{ always() && steps.plan.outputs.exitcode == 2 }}
         run: terraform show -no-color tfplan > tfplan.txt
 
       - name: Render plan for PR comment
         id: tf_output
+        if: ${{ always() && steps.plan.outputs.exitcode == 2 }}
         run: |
           {
             echo 'PLAN_OUTPUT<<EOF'
@@ -72,7 +82,7 @@ jobs:
 
 
       - uses: actions/github-script@v6
-        if: github.event_name == 'pull_request'
+        if: (${{ always() && steps.plan.outputs.exitcode == 2 }}) && github.event_name == 'pull_request'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
