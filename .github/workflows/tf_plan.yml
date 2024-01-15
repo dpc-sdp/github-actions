@@ -12,10 +12,6 @@ on:
         type: string
         required: false
         default: dpc-sdp
-      debug_token:
-        description: GitHub token for debugging purposes
-        type: string
-        required: false
 
 env:
   ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
@@ -27,7 +23,7 @@ env:
   AWS_DEFAULT_REGION: ${{ inputs.aws_default_region }}
   EC_API_KEY: ${{ secrets.EC_API_KEY }}
   GITHUB_OWNER: ${{ inputs.tf_github_owner }}
-  GITHUB_TOKEN: ${{ secrets.DEBUG_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   SUMOLOGIC_ACCESSID: ${{ secrets.SUMOLOGIC_ACCESSID }}
   SUMOLOGIC_ACCESSKEY: ${{ secrets.SUMOLOGIC_ACCESSKEY }}
   TF_LOG: DEBUG
