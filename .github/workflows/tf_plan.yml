@@ -12,9 +12,6 @@ on:
         type: string
         required: false
         default: dpc-sdp
-permissions:
-  contents: write
-  issues: write
 
 env:
   ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
