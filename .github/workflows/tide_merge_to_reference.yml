@@ -1,0 +1,17 @@
+name: tide_merge_to_reference
+
+on: workflow_call
+
+jobs:
+  tide_merge_to_reference:
+    name: tide_merge_to_reference
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Configure Git
+        run: |
+          git config --global user.email "${{ secrets.DEPLOY_USER_EMAIL }}" && git config --global user.name "${{ secrets.DEPLOY_USER_NAME }}"
+      - name: Merge to reference branch
+        run: |
+          bash .circleci/merge-to-reference.sh
