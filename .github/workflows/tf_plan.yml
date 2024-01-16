@@ -60,9 +60,6 @@ jobs:
           terraform plan -no-color -input=false -out=tfplan -detailed-exitcode
           exitcode="$?"
           echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
-          echo $exitcode
-          exitcode=1
-          echo $exitcode
           if [ $exitcode -eq 2 ]; then
             exit 0
           fi
