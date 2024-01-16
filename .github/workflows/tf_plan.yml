@@ -57,8 +57,11 @@ jobs:
         id: plan
         continue-on-error: true
         run: |
+          set +e
           terraform plan -no-color -input=false -out=tfplan -detailed-exitcode
-          echo $?
+          exitcode="$?"
+          echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
+          exit "$exitcode"
 
       - name: Check Terraform Plan
         if: ${{ failure() && steps.plan.outputs.exitcode == 2 }}
