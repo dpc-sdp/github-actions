@@ -62,6 +62,7 @@ jobs:
           exitcode="$?"
           echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
           exitcode=1
+          echo $exitcode
           if [ $exitcode -eq 2 ]; then
             exit 0
           fi
