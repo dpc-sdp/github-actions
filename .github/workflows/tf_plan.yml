@@ -56,12 +56,15 @@ jobs:
       - name: Terraform Plan
         id: plan
         run: |
-          # set +e
+          set +e
           terraform plan -no-color -input=false -out=tfplan -detailed-exitcode
           exitcode="$?"
           echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
-          if [ $exitcode -eq 2 ]; then
+          if [[ $exitcode -eq 2 ]]
+          then
             exit 0
+          else
+            exit $exitcode  
           fi
 
       - name: Check Terraform Plan
