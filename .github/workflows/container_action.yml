@@ -12,6 +12,7 @@ jobs:
   main:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Hello world action step
         # Uses an action in the root directory
         uses: dpc-sdp/action-container@main
