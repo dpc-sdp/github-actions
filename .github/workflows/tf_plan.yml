@@ -14,16 +14,18 @@ on:
         default: dpc-sdp
 
 env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  AWS_DEFAULT_REGION: ${{ inputs.aws_default_region }}
-  SUMOLOGIC_ACCESSID: ${{ secrets.SUMOLOGIC_ACCESSID }}
-  SUMOLOGIC_ACCESSKEY: ${{ secrets.SUMOLOGIC_ACCESSKEY }}
   ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
   ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
   ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
   ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: ${{ inputs.aws_default_region }}
   EC_API_KEY: ${{ secrets.EC_API_KEY }}
+  GITHUB_OWNER: ${{ inputs.tf_github_owner }}
+  GITHUB_TOKEN: ${{ secrets.TF_GITHUB_TOKEN }}
+  SUMOLOGIC_ACCESSID: ${{ secrets.SUMOLOGIC_ACCESSID }}
+  SUMOLOGIC_ACCESSKEY: ${{ secrets.SUMOLOGIC_ACCESSKEY }}
 
 jobs:
   plan:
@@ -52,7 +54,22 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        run: terraform plan -no-color -input=false -out=tfplan
+        run: |
+          set +e
+          terraform plan -no-color -input=false -out=tfplan -detailed-exitcode
+          exitcode="$?"
+          echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
+          if [[ $exitcode -eq 2 ]]
+          then
+            exit 0
+          else
+            exit $exitcode  
+          fi
+
+      - name: Check Terraform Plan
+        run: |
+          echo "Terraform plan returned ${{ steps.plan.outputs.exitcode }}"
+          echo "2 = Succeeded with non-empty diff (changes present) "
 
       - name: Render plan diff
         id: show
