@@ -12,7 +12,8 @@ jobs:
   main:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Hello world action step
         # Uses an action in the root directory
         uses: dpc-sdp/action-container@main
@@ -22,3 +23,7 @@ jobs:
           who-to-greet: ${{ inputs.who-to-greet }}
           # Inherited secret from the caller.
           my-other-var: ${{ secrets.TEST_VAR }}
+      # Use the output from the `hello` step
+      - name: Get the output time
+        run: echo "The time was ${{ steps.hello.outputs.time }}"
+
