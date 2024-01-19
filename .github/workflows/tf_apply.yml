@@ -12,23 +12,31 @@ on:
         type: string
         required: false
         default: production
+      tf_github_owner:
+        description: Terraform GitHub repo owner
+        type: string
+        required: false
+        default: dpc-sdp
 
 env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  AWS_DEFAULT_REGION: ${{ inputs.aws_default_region }}
-  SUMOLOGIC_ACCESSID: ${{ secrets.SUMOLOGIC_ACCESSID }}
-  SUMOLOGIC_ACCESSKEY: ${{ secrets.SUMOLOGIC_ACCESSKEY }}
   ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
   ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
   ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
   ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: ${{ inputs.aws_default_region }}
   EC_API_KEY: ${{ secrets.EC_API_KEY }}
+  GITHUB_OWNER: ${{ inputs.TF_GITHUB_OWNER }}
+  GITHUB_TOKEN: ${{ secrets.TF_GITHUB_TOKEN }}
+  SUMOLOGIC_ACCESSID: ${{ secrets.SUMOLOGIC_ACCESSID }}
+  SUMOLOGIC_ACCESSKEY: ${{ secrets.SUMOLOGIC_ACCESSKEY }}
 
 jobs:
   apply:
     environment: ${{ inputs.environment }}
-    runs-on: ubuntu-latest
+    runs-on:
+      group: organization/Default
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
