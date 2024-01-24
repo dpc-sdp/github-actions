@@ -47,5 +47,5 @@ jobs:
         uses: benc-uk/workflow-dispatch@v1
         with:
           workflow: build
-          repo: ${{ secrets.GITHUB_REPOSITORY }}
+          repo: ${{ github.repository }}
           ref: ${{ env.RELEASE_GIT_BRANCH }}
