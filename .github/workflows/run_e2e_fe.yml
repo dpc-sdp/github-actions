@@ -183,6 +183,7 @@ jobs:
     with:
       workflow_name: ${{ inputs.name }}
       workflow_id: ${{ inputs.id }}
+      workflow_reusable_name: "run_e2e_fe"
       test_type: ${{ inputs.test_type }}
       test_subtype: ${{ inputs.test_subtype }}
       artifact_name: "${{ inputs.name }}-report-url"
