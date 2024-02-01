@@ -23,6 +23,10 @@ on:
       workflow_name:
         type: string
         required: true
+      workflow_id:
+        type: string
+        required: false
+        default: ""
       project:
         description: Lagoon project name
         type: string
@@ -38,7 +42,9 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     steps:
-    - uses: technote-space/workflow-conclusion-action@v3
+    - uses: dpc-sdp/workflow-conclusion-action@feature/DDS-1852-support-multiple-jobs
+      with:
+        JOB_ID: ${{ inputs.workflow_id }}
     - uses: actions/download-artifact@v3
       with:
         name: ${{ inputs.artifact_name }}
