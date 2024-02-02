@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Determine workflow state if not explicitly provided
-        uses: technote-space/workflow-conclusion-action@v3
+        uses: dpc-sdp/workflow-conclusion-action@main
         if: ${{ inputs.state == '' }}
       - name: Set explicitly provided workflow state
         if: ${{ inputs.state != '' }}

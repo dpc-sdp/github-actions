@@ -8,6 +8,11 @@ on:
           type: string
           required: false
           default: "BE E2E"
+        id:
+          description: Test suite ID
+          type: string
+          required: false
+          default: ""
         tags:
           description: Cucumber test tags
           type: string
@@ -185,6 +190,8 @@ jobs:
     secrets: inherit
     with:
       workflow_name: ${{ inputs.name }}
+      workflow_id: ${{ inputs.id }}
+      workflow_reusable_name: "run_e2e_be"
       test_type: ${{ inputs.test_type }}
       test_subtype: ${{ inputs.test_subtype }}
       artifact_name: "${{ inputs.name }}-report-url"

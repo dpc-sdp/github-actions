@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     steps:
-    - uses: dpc-sdp/workflow-conclusion-action@feature/DDS-1852-support-multiple-jobs
+    - uses: dpc-sdp/workflow-conclusion-action@main
       with:
         JOB_ID: ${{ inputs.workflow_id }}
         REUSABLE_WORKFLOW_NAME: ${{ inputs.workflow_reusable_name }}
