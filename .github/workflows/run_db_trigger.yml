@@ -136,8 +136,8 @@ jobs:
             --no-cache \
             --platform linux/amd64,linux/arm64 \
             --build-arg DATA_DIR=${{ env.TMP_DATA_DIR }} \
-            --annotation $(echo ${{ steps.meta.outputs.annotations }} | tr ' ' ',') \
-            --label $(echo ${{ steps.meta.outputs.labels }} | tr ' ' ',') \
+            --annotation $(echo ${{ steps.meta.outputs.annotations }} | tr '[:space:]' ',') \
+            --label $(echo ${{ steps.meta.outputs.labels }} | tr '[:space:]' ',') \
             --push \
             -f Dockerfile.seed \
             --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
