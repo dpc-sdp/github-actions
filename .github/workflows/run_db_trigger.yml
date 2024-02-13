@@ -139,6 +139,7 @@ jobs:
             --no-cache \
             --platform linux/amd64,linux/arm64 \
             --build-arg DATA_DIR=${{ env.TMP_DATA_DIR }} \
+            --annotation ${{ steps.meta.outputs.annotations }} \
             --label ${{ steps.meta.outputs.labels }} \
             --push \
             -f Dockerfile.seed \
