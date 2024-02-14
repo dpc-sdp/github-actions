@@ -124,6 +124,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
+          
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -131,15 +132,16 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build and push the database image
-        run: |
-          docker buildx build \
-            --no-cache \
-            --platform linux/amd64,linux/arm64 \
-            --build-arg DATA_DIR=${{ env.TMP_DATA_DIR }} \
-            --push \
-            -f Dockerfile.seed \
-            --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
-            .
+        uses: docker/build-push-action@v5
+        with:
+          file: Dockerfile.seed
+          context: .
+          build-args: DATA_DIR=${{ env.TMP_DATA_DIR }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          platforms: linux/amd64,linux/arm64
+          labels: ${{ steps.meta.outputs.labels }}
+          annotations: ${{ steps.meta.outputs.annotations }}
+          push: true
   
   notify_slack:
     runs-on: ubuntu-latest
