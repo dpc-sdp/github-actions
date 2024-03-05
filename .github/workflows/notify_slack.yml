@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     steps:
-    - uses: dpc-sdp/workflow-conclusion-action@main
+    - uses: dpc-sdp/workflow-conclusion-action@feature/debug-inputs
       with:
         JOB_ID: ${{ inputs.workflow_id }}
         REUSABLE_WORKFLOW_NAME: ${{ inputs.workflow_reusable_name }}
