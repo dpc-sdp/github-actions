@@ -54,6 +54,11 @@ jobs:
       with:
         name: ${{ inputs.artifact_name }}
     - name: prepare-report
+      if: ${{ inputs.test_type == ':postman:' }}
+      run: |
+        echo "REPORT_TEXT=API test report is stored in the CI job summary artifacts" >> $GITHUB_ENV
+    - name: prepare-report
+      if: ${{ inputs.test_type != ':postman:' }}
       run: |
         if [[ -z $FE_BASE_URL ]]; then
           echo TEST_ENVIRONMENTS="*BE URL:* $BE_BASE_URL" >> $GITHUB_ENV
