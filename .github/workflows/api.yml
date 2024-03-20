@@ -46,7 +46,7 @@ jobs:
           cd /app
           if [ -e tests/newman/tide.collection.json ]
           then
-            if [[ ${TEST_NEWMAN_DISABLE_CORE} == true ]]
+            if [[ "${TEST_NEWMAN_DISABLE_CORE}" == "true" ]]
             then
               echo "==> Core Tests are disabled by env var TEST_NEWMAN_DISABLE_CORE. Skip the test."
             else
