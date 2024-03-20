@@ -53,11 +53,11 @@ jobs:
     - uses: actions/download-artifact@v3
       with:
         name: ${{ inputs.artifact_name }}
-    - name: prepare-report
+    - name: prepare-report-api
       if: ${{ inputs.test_type == ':postman:' }}
       run: |
         echo "REPORT_TEXT=API test report is stored in the CI job summary artifacts" >> $GITHUB_ENV
-    - name: prepare-report
+    - name: prepare-report-e2e
       if: ${{ inputs.test_type != ':postman:' }}
       run: |
         if [[ -z $FE_BASE_URL ]]; then
