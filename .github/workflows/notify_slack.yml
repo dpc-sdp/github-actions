@@ -53,6 +53,16 @@ jobs:
     - uses: actions/download-artifact@v3
       with:
         name: ${{ inputs.artifact_name }}
+    - name: prepare-report
+      run: |
+        if [[ -z $FE_BASE_URL ]]; then
+          echo TEST_ENVIRONMENTS="*BE URL:* $BE_BASE_URL" >> $GITHUB_ENV
+        else
+          echo TEST_ENVIRONMENTS="*BE URL:* $BE_BASE_URL \n *FE URL:* $FE_BASE_URL" >> $GITHUB_ENV
+        fi
+      env:
+        BE_BASE_URL: ${{ inputs.be_url }}
+        FE_BASE_URL: ${{ inputs.fe_url }}
     - name: prepare-report-api
       if: ${{ inputs.test_type == ':postman:' }}
       run: |
@@ -60,11 +70,6 @@ jobs:
     - name: prepare-report-e2e
       if: ${{ inputs.test_type != ':postman:' }}
       run: |
-        if [[ -z $FE_BASE_URL ]]; then
-          echo TEST_ENVIRONMENTS="*BE URL:* $BE_BASE_URL" >> $GITHUB_ENV
-        else
-          echo TEST_ENVIRONMENTS="*BE URL:* $BE_BASE_URL \n *FE URL:* $FE_BASE_URL" >> $GITHUB_ENV
-        fi
         if [ -f "report-url.txt" -a -s "report-url.txt" ]; then
           echo "Workflow status is $WORKFLOW_CONCLUSION"
           if [ "$WORKFLOW_CONCLUSION" = "success" ]; then
@@ -75,9 +80,6 @@ jobs:
         else
           echo "REPORT_TEXT=:crying_cat_face: No report found. Testing may have been skipped." >> $GITHUB_ENV
         fi
-      env:
-        BE_BASE_URL: ${{ inputs.be_url }}
-        FE_BASE_URL: ${{ inputs.fe_url }}
     - name: sdp-test-report-success
       uses: slackapi/slack-github-action@v1.24.0
       if: env.WORKFLOW_CONCLUSION == 'success'
