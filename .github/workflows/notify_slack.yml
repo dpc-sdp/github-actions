@@ -25,11 +25,11 @@ on:
         required: true
       workflow_id:
         type: string
-        required: false
+        required: true
         default: ""
       workflow_reusable_name:
         type: string
-        required: false
+        required: true
         default: ""
       project:
         description: Lagoon project name
@@ -46,6 +46,8 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     steps:
+    - name: Wait 15s for previous jobs to conclude
+      run: sleep 15
     - uses: dpc-sdp/workflow-conclusion-action@main
       with:
         JOB_ID: ${{ inputs.workflow_id }}
