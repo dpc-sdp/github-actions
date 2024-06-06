@@ -52,7 +52,7 @@ jobs:
       with:
         JOB_ID: ${{ inputs.workflow_id }}
         REUSABLE_WORKFLOW_NAME: ${{ inputs.workflow_reusable_name }}
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: ${{ inputs.artifact_name }}
     - name: prepare-report
@@ -83,7 +83,7 @@ jobs:
           echo "REPORT_TEXT=:crying_cat_face: No report found. Testing may have been skipped." >> $GITHUB_ENV
         fi
     - name: sdp-test-report-success
-      uses: slackapi/slack-github-action@v1.24.0
+      uses: slackapi/slack-github-action@v1.26.0
       if: env.WORKFLOW_CONCLUSION == 'success'
       env:
         REPO_NAME: ${{ github.repository }}
@@ -126,7 +126,7 @@ jobs:
                 ]
               }
     - name: sdp-test-report-fail
-      uses: slackapi/slack-github-action@v1.24.0
+      uses: slackapi/slack-github-action@v1.26.0
       if: env.WORKFLOW_CONCLUSION != 'success'
       with:
           channel-id: ${{ inputs.slack_channel }}
