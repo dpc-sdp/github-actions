@@ -112,9 +112,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Get repo name
-        id: repo_name
-        run: echo "::set-output name=REPO_NAME::$(echo ${GITHUB_REPOSITORY#*/})"
       -
         name: Check browsers
         run: |
@@ -153,7 +150,7 @@ jobs:
           report_name: 'test-reports-${{ inputs.name }}'
       - 
         name: Upload test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-results
@@ -172,7 +169,7 @@ jobs:
           TEST_STATUS=pass node -r ts-node/register -r tsconfig-paths/register scripts/addTestResult.ts
       - 
         name: Store Cucumber Cloud test report URL
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: ${{ inputs.name }}-report-url
