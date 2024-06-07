@@ -112,9 +112,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Get repo name
-        id: repo_name
-        run: echo "::set-output name=REPO_NAME::$(echo ${GITHUB_REPOSITORY#*/})"
       -
         name: Check browsers
         run: |
@@ -152,13 +149,6 @@ jobs:
         with:
           report_name: 'test-reports-${{ inputs.name }}'
       - 
-        name: Upload test results
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: test-results
-          path: /app/reports/
-      - 
         name: 'Add failed test result status to CMS'
         if: inputs.test_status && failure()
         run: |
@@ -170,13 +160,6 @@ jobs:
         run: |
           cd /app
           TEST_STATUS=pass node -r ts-node/register -r tsconfig-paths/register scripts/addTestResult.ts
-      - 
-        name: Store Cucumber Cloud test report URL
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: ${{ inputs.name }}-report-url
-          path: /app/reports/report-url.txt
   notify_slack:
     uses: ./.github/workflows/notify_slack.yml
     if: |
@@ -196,7 +179,7 @@ jobs:
       workflow_reusable_name: "run_e2e_be"
       test_type: ${{ inputs.test_type }}
       test_subtype: ${{ inputs.test_subtype }}
-      artifact_name: "${{ inputs.name }}-report-url"
+      artifact_name: "test-reports-${{ inputs.name }}"
       be_url: ${{ inputs.be_url }}
       project: ${{ inputs.project }}
       slack_channel: ${{ inputs.slack_channel }}
