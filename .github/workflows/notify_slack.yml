@@ -48,7 +48,7 @@ jobs:
     steps:
     - name: Wait 15s for previous jobs to conclude
       run: sleep 15
-    - uses: dpc-sdp/workflow-conclusion-action@main
+    - uses: dpc-sdp/workflow-conclusion-action@SDPTA-1067-use-node-20
       with:
         JOB_ID: ${{ inputs.workflow_id }}
         REUSABLE_WORKFLOW_NAME: ${{ inputs.workflow_reusable_name }}

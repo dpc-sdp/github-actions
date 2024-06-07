@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Determine workflow state if not explicitly provided
-        uses: dpc-sdp/workflow-conclusion-action@main
+        uses: dpc-sdp/workflow-conclusion-action@SDPTA-1067-use-node-20
         if: ${{ inputs.state == '' }}
       - name: Set explicitly provided workflow state
         if: ${{ inputs.state != '' }}
