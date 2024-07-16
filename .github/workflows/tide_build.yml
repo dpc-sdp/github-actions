@@ -19,6 +19,7 @@ env:
 
 jobs:
   check-nginx-config:
+    name: check-nginx-config
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
