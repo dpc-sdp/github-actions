@@ -22,7 +22,7 @@ jobs:
     name: tide_build
     runs-on: ${{ inputs.runner }}
     container:
-      image: ghcr.io/dpc-sdp/bay/ci-builder:5.x
+      image: ghcr.io/dpc-sdp/bay/ci-builder:6.x
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
