@@ -22,3 +22,4 @@ runs:
         detailed_summary: true
         include_passed: false
         check_name: ${{ inputs.report_name }}
+        annotate_only: true
