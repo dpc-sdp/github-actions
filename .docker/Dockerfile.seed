@@ -1,4 +1,4 @@
-FROM ghcr.io/dpc-sdp/bay/mariadb:6.x
+FROM ghcr.io/dpc-sdp/bay/mariadb:6.x 
 
 ARG DATA_DIR=/tmp/data
 
@@ -11,3 +11,5 @@ RUN chown -R mysql /var/lib/mysql \
     && /bin/fix-permissions /var/lib/mysql
 
 USER mysql
+ENV MARIADB_INIT_WAIT_SECONDS=80
+ENV MARIADB_INIT_PERIOD_SECOND=2
