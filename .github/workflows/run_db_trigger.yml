@@ -55,7 +55,7 @@ jobs:
       - name: Start the database container
         id: container
         run: |
-          CONTAINER_ID=$(docker run -d ghcr.io/dpc-sdp/bay/mariadb:5.x)
+          CONTAINER_ID=$(docker run -d ghcr.io/dpc-sdp/bay/mariadb:6.x)
           timeout 60s docker exec --user 1000 -i "${CONTAINER_ID}" sh -c "until nc -z localhost 3306; do sleep 1; echo -n .; done; echo"
           echo "id=$CONTAINER_ID" >> $GITHUB_OUTPUT
 
