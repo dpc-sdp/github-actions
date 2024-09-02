@@ -1,4 +1,4 @@
-FROM ghcr.io/dpc-sdp/bay/mariadb:5.x
+FROM ghcr.io/dpc-sdp/bay/mariadb:6.x
 
 ARG DATA_DIR=/tmp/data
 
