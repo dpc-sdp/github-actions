@@ -102,6 +102,7 @@ env:
   CUCUMBER_PUBLISH_TOKEN: ${{ secrets.TEST_CUCUMBER_PUBLISH_TOKEN }}
   # Settings
   TESTID: ${{ inputs.test_id }}
+  NIGHTWATCH_HEADLESS: true
   NIGHTWATCH_OUTPUT: true
   GIT_BRANCH: ${{ github.event.pull_request && github.head_ref || github.ref_name }}
   EYES_APPNAME: ${{ inputs.eyes_appname }}
