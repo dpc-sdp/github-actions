@@ -1,0 +1,54 @@
+name: notify_jira
+
+on:
+  workflow_call:
+    inputs:
+      be_url:
+        type: string
+        required: true
+      fe_url:
+        type: string
+        required: false
+        default: ""
+      jira_id:
+        type: string
+        required: true
+        default: ""
+      status:
+        type: string
+        required: true
+        default: ""
+      workflow_link:
+        type: string
+        required: true
+        default: ""
+
+jobs:
+  send_e2e_result_jira:
+    name: send_e2e_result_jira
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Prepare JIRA Comment
+        env:
+          BE_BASE_URL: ${{ inputs.be_url }}
+          FE_BASE_URL: ${{ inputs.fe_url }}
+          JIRA_ID: ${{ inputs.jira_id }}
+          WORKFLOW_LINK: ${{ inputs.workflow_link }}
+          STATUS: ${{ inputs.status }}
+          JIRA_USER: ${{ secrets.JIRA_USER }}  # Secret containing JIRA username
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}  # Secret containing JIRA API token
+        run: |
+          echo "Preparing JIRA comment..."
+          
+          # Determine the branch name from the Git reference
+          GIT_BRANCH=${GITHUB_REF##*/}
+          
+          # Construct the comment template
+          COMMENT="GHA: E2E Test - ${STATUS} on (this is the git branch: ${GIT_BRANCH})\n"
+          COMMENT+="BE URL: $BE_BASE_URL\n"
+          COMMENT+="FE URL: $FE_BASE_URL\n"
+          COMMENT+="Workflow URL: $WORKFLOW_LINK"
+
+          # Print the comment to the console (for debugging)
+          echo -e "$COMMENT"
