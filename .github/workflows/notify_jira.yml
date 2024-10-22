@@ -7,6 +7,10 @@ on:
         type: string
         required: true
         default: ""
+      status:
+        type: string
+        required: true
+        default: ""
 
 jobs:
   notify_jira:
@@ -48,6 +52,7 @@ jobs:
           echo "fe_custom_visual status: ${{ needs.fe_custom_visual.result }}"
           echo "fe_custom status: ${{ needs.fe_custom.result }}"
           echo "fe_core status: ${{ needs.fe_core.result }}"
+          echo "status: $WORKFLOW_LINK"
 
           if [[ "${{ needs.fe_smoke.result }}" == "failure" ]] || \
             [[ "${{ needs.fe_core_visual.result }}" == "failure" ]] || \
