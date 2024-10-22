@@ -3,10 +3,6 @@ name: notify_jira
 on:
   workflow_call:
     inputs:
-      status:
-        type: string
-        required: true
-        default: ""
       workflow_link:
         type: string
         required: true
