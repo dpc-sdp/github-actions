@@ -171,17 +171,6 @@ jobs:
           )
         )
       )
-      always() &&
-      (
-        inputs.slack_notify == 'always' ||
-        (
-          inputs.slack_notify == 'release_only' &&
-          (
-            startsWith(github.ref_name, 'release/') ||
-            contains(fromJSON('["uat", "master", "standby", "production"]'), github.ref_name)
-          )
-        )
-      )
     needs: [run_e2e_fe]
     secrets: inherit
     with:
