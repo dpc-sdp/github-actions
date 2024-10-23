@@ -41,12 +41,12 @@ jobs:
           fi
   
 
-      - name: Determine the workflow status
+      - name: Set the workflow status
         id: determine_e2e_status
         if: env.JIRA_ID != ''
         run: |
+          echo 'STATUS=${{ inputs.status }}' >> $GITHUB_ENV
           echo "Overall workflow status: $STATUS"
-          echo "STATUS=$STATUS" >> $GITHUB_ENV
 
       - name: Prepare JIRA Comment
         id: prepare_jira_comment
