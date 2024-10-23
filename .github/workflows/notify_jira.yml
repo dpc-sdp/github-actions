@@ -46,7 +46,7 @@ jobs:
         id: determine_e2e_status
         if: success() && env.JIRA_ID != ''
         env:
-          JIRA_ID: ${{ env.JIRA_ID }}  # Use the extracted JIRA ID
+          JIRA_ID: ${{ env.JIRA_ID }}
           STATUS: ${{ inputs.status }}
         run: |
           echo "Overall workflow status: $STATUS"
@@ -56,7 +56,7 @@ jobs:
         id: prepare_jira_comment
         if: success() && env.JIRA_ID != ''
         env:
-          JIRA_ID: ${{ env.JIRA_ID }}  # Use the extracted JIRA ID
+          JIRA_ID: ${{ env.JIRA_ID }}
           WORKFLOW_LINK: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"  # Link to the workflow run
           STATUS: ${{ env.STATUS }}
         run: |
