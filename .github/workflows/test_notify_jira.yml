@@ -35,7 +35,6 @@ jobs:
           # Check if JIRA ID is found
           if [ -z "$JIRA_ID" ]; then
             echo "No JIRA ID found in commit message: $commit_message"
-            exit 0  # Exit gracefully without failing the job
           else
             echo "Extracted JIRA ID: $JIRA_ID"
             echo "JIRA_ID=$JIRA_ID" >> $GITHUB_ENV
@@ -44,21 +43,16 @@ jobs:
 
       - name: Determine the workflow status
         id: determine_e2e_status
-        if: success() && env.JIRA_ID != ''
-        env:
-          JIRA_ID: ${{ env.JIRA_ID }}
-          STATUS: ${{ inputs.status }}
+        if: env.JIRA_ID != ''
         run: |
           echo "Overall workflow status: $STATUS"
           echo "STATUS=$STATUS" >> $GITHUB_ENV
 
       - name: Prepare JIRA Comment
         id: prepare_jira_comment
-        if: success() && env.JIRA_ID != ''
+        if: env.JIRA_ID != ''
         env:
-          JIRA_ID: ${{ env.JIRA_ID }}
           WORKFLOW_LINK: "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"  # Link to the workflow run
-          STATUS: ${{ env.STATUS }}
         run: |
           echo "Preparing JIRA comment..."
 
@@ -75,9 +69,8 @@ jobs:
 
       - name: Post JIRA Comment
         id: post_jira_comment
-        if: success() && env.JIRA_ID != ''
+        if: env.JIRA_ID != ''
         env:
-          JIRA_ID: ${{ env.JIRA_ID }}  # Use the extracted JIRA ID from the commit message
           JIRA_USERNAME: ${{ secrets.JIRA_USERNAME }}  # Jira username from secrets
           JIRA_PASSWORD: ${{ secrets.JIRA_PASSWORD }}  # Jira password from secrets
           COMMENT: ${{ env.COMMENT }}  # The comment prepared in the previous step
