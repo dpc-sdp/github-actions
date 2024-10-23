@@ -46,7 +46,7 @@ jobs:
         if: env.JIRA_ID != ''
         run: |
           echo 'STATUS=${{ inputs.status }}' >> $GITHUB_ENV
-          echo "Overall workflow status: $STATUS"
+          echo "Overall workflow status: ${STATUS}"
 
       - name: Prepare JIRA Comment
         id: prepare_jira_comment
