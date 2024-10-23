@@ -48,7 +48,7 @@ jobs:
         env:
           JIRA_ID: ${{ env.JIRA_ID }}  # Use the extracted JIRA ID
           STATUS: ${{ inputs.status }}
-        run: 
+        run: |
           echo "Overall workflow status: $STATUS"
           echo "STATUS=$STATUS" >> $GITHUB_ENV
 
