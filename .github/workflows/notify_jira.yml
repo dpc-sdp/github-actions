@@ -3,10 +3,10 @@ name: notify_jira
 on:
   workflow_call:
     inputs:
-      workflow_link:
-        type: string
-        required: true
-        default: ""
+      # workflow_link:
+      #   type: string
+      #   required: true
+      #   default: ""
       status:
         type: string
         required: true
@@ -30,12 +30,8 @@ jobs:
             echo "Failed to fetch commit message."
             exit 0  # Exit gracefully on curl failure
           fi
-  
-          echo "Commit API response: $commit_info"
-          
+
           commit_message=$(echo "$commit_info" | jq -r '.commit.message')
-          
-          echo "Commit message: $commit_message"
   
           # Extract JIRA ID
           JIRA_ID=$(echo "$commit_message" | grep -oE 'SCFA-[0-9]{1,5}' || true)  # Prevents non-zero exit code
@@ -43,7 +39,6 @@ jobs:
           # Check if JIRA ID is found
           if [ -z "$JIRA_ID" ]; then
             echo "No JIRA ID found in commit message: $commit_message"
-            echo "JIRA_ID_NOT_FOUND=true" >> $GITHUB_ENV
             exit 0  # Exit gracefully without failing the job
           else
             echo "Extracted JIRA ID: $JIRA_ID"
@@ -90,7 +85,7 @@ jobs:
           GIT_BRANCH=${GITHUB_REF##*/}
 
           # Construct the comment template
-          COMMENT="E2E Test - ${STATUS} on branch ${GIT_BRANCH}\n"
+          COMMENT="E2E Test - ${STATUS} on branch ${GIT_BRANCH}, ID: ${JIRA_ID}\n"
           COMMENT+="Workflow URL: $WORKFLOW_LINK"
 
           # Print the comment to the console for debugging
