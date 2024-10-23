@@ -25,26 +25,31 @@ jobs:
           -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
           https://api.github.com/repos/${{ github.repository }}/commits/${{ github.sha }})
 
-            # Check if curl was successful
-            if [ $? -ne 0 ]; then
+          # Check if curl was successful
+          if [ $? -ne 0 ]; then
             echo "Failed to fetch commit message."
             exit 0  # Exit gracefully on curl failure
           fi
-
+  
+          echo "Commit API response: $commit_info"
+          
           commit_message=$(echo "$commit_info" | jq -r '.commit.message')
-
+          
+          echo "Commit message: $commit_message"
+  
           # Extract JIRA ID
-          JIRA_ID=$(echo "$commit_message" | grep -oE 'SCFA-[0-9]{1,5}')
-
+          JIRA_ID=$(echo "$commit_message" | grep -oE 'SCFA-[0-9]{1,5}' || true)  # Prevents non-zero exit code
+  
           # Check if JIRA ID is found
           if [ -z "$JIRA_ID" ]; then
-            echo "No JIRA ID found in commit message, skipping steps."
+            echo "No JIRA ID found in commit message: $commit_message"
             echo "JIRA_ID_NOT_FOUND=true" >> $GITHUB_ENV
             exit 0  # Exit gracefully without failing the job
           else
             echo "Extracted JIRA ID: $JIRA_ID"
             echo "JIRA_ID=$JIRA_ID" >> $GITHUB_ENV
           fi
+  
 
       - name: Determine the workflow status
         id: determine_e2e_status
