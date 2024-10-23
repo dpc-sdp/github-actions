@@ -45,14 +45,14 @@ jobs:
         if: success() && env.JIRA_ID != ''
         env:
           JIRA_ID: ${{ env.JIRA_ID }}  # Use the extracted JIRA ID
+          STATUS: ${{ inputs.status }}
         run: |
-          STATUS="success"
           echo "fe_smoke status: ${{ needs.fe_smoke.result }}"
           echo "fe_core_visual status: ${{ needs.fe_core_visual.result }}"
           echo "fe_custom_visual status: ${{ needs.fe_custom_visual.result }}"
           echo "fe_custom status: ${{ needs.fe_custom.result }}"
           echo "fe_core status: ${{ needs.fe_core.result }}"
-          echo "status: $WORKFLOW_LINK"
+          echo "status: $STATUS"
 
           if [[ "${{ needs.fe_smoke.result }}" == "failure" ]] || \
             [[ "${{ needs.fe_core_visual.result }}" == "failure" ]] || \
