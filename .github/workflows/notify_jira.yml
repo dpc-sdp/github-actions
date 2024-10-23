@@ -85,7 +85,7 @@ jobs:
           echo -e "${JIRA_ID}"
 
           # Define the JIRA comment API endpoint
-          JIRA_API_URL="https://digital-vic.atlassian.net/rest/api/2/issue/${SCFA-11111}/comment"
+          JIRA_API_URL="https://digital-vic.atlassian.net/rest/api/2/issue/${JIRA_ID}/comment"
 
           # Post the comment to JIRA using basic auth with username and password
           response=$(curl -s -w "%{http_code}" -X POST \
