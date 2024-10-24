@@ -93,8 +93,6 @@ jobs:
           # Handle the API response
           if [ "$http_code" -eq 201 ]; then
             echo "Comment posted successfully to Jira issue ${JIRA_ID}"
-          elif [ "$http_code" -eq 404 ]; then
-            echo "Jira issue ${JIRA_ID} not found. No comment posted."
           else
             echo "Failed to post comment to Jira issue ${JIRA_ID}. HTTP Code: $http_code"
             echo "Response Body: $response_body"
