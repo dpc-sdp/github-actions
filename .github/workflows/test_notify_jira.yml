@@ -42,7 +42,7 @@ jobs:
   
 
       - name: Set the workflow status
-        id: determine_e2e_status
+        id: set_e2e_status
         if: env.JIRA_ID != ''
         run: |
           echo 'STATUS=${{ inputs.status }}' >> $GITHUB_ENV
