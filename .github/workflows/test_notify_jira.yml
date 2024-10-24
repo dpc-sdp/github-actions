@@ -71,8 +71,8 @@ jobs:
         id: post_jira_comment
         if: env.JIRA_ID != ''
         env:
-          JIRA_USERNAME: ${{ secrets.JIRA_USERNAME }}  # Jira username from secrets
-          JIRA_PASSWORD: ${{ secrets.JIRA_PASSWORD }}  # Jira password from secrets
+          JIRA_USERNAME: ${{ secrets.TEST_JIRA_USERNAME }}  # Jira username from secrets
+          JIRA_PASSWORD: ${{ secrets.TEST_JIRA_PASSWORD }}  # Jira password from secrets
           COMMENT: ${{ env.COMMENT }}  # The comment prepared in the previous step
         run: |
           echo -e "${JIRA_ID}"
