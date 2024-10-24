@@ -96,4 +96,5 @@ jobs:
           else
             echo "Failed to post comment to Jira issue ${JIRA_ID}. HTTP Code: $http_code"
             echo "Response Body: $response_body"
+            exit 1
           fi
