@@ -67,33 +67,18 @@ jobs:
           echo -e "COMMENT:\n${COMMENT}"
           echo "COMMENT=$COMMENT" >> $GITHUB_ENV
 
-      - name: Post JIRA Comment
-        id: post_jira_comment
-        if: env.JIRA_ID != ''
-        env:
-          JIRA_USERNAME: ${{ secrets.TEST_JIRA_USERNAME }}  # Jira username from secrets
-          JIRA_PASSWORD: ${{ secrets.TEST_JIRA_PASSWORD }}  # Jira password from secrets
-          COMMENT: ${{ env.COMMENT }}  # The comment prepared in the previous step
-        run: |
-          echo -e "${JIRA_ID}"
+      # - name: Post JIRA Comment
+      #   if: env.JIRA_ID != ''
+      #   uses: ./.github/workflows/post_jira_comment.yml
+      #   with:
+      #     JIRA_ID: ${{ env.JIRA_ID }}
+      #     COMMENT: ${{ env.COMMENT }}
 
-          # Define the JIRA comment API endpoint
-          JIRA_API_URL="https://digital-vic.atlassian.net/rest/api/2/issue/${JIRA_ID}/comment"
+  post_jira_comment:
+    uses: ./.github/workflows/post_jira_comment.yml
+    if: env.JIRA_ID != ''
+    secrets: inherit
+    with:
+      jira_id: ${{ env.JIRA_ID }}
+      comment: ${{ env.COMMENT }}
 
-          # Post the comment to JIRA using basic auth with username and password
-          response=$(curl -s -w "%{http_code}" -X POST \
-            -H "Content-Type: application/json" \
-            -u "${JIRA_USERNAME}:${JIRA_PASSWORD}" \
-            --data "{\"body\": \"${COMMENT}\"}" \
-            "${JIRA_API_URL}")
-
-          http_code="${response:(-3)}"  # Extract HTTP status code (last 3 characters)
-          response_body="${response:0:-3}"  # The response body
-
-          # Handle the API response
-          if [ "$http_code" -eq 201 ]; then
-            echo "Comment posted successfully to Jira issue ${JIRA_ID}"
-          else
-            echo "Failed to post comment to Jira issue ${JIRA_ID}. HTTP Code: $http_code"
-            echo "Response Body: $response_body"
-          fi
