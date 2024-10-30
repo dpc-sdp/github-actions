@@ -11,6 +11,9 @@ on:
 jobs:
   notify_jira:
     runs-on: ubuntu-latest
+    outputs:
+      jira_id: ${{ steps.extract_jira_id.outputs.jira_id }}
+      comment: ${{ steps.prepare_jira_comment.outputs.comment }}
     steps:
       - name: Extract JIRA ID from the commit message
         id: extract_jira_id
@@ -76,7 +79,7 @@ jobs:
 
   post_jira_comment:
     uses: ./.github/workflows/post_jira_comment.yml
-    if: needs.notify_jira.outputs.jira_id != ''
+    needs: [notify_jira]
     secrets: inherit
     with:
       jira_id: ${{ needs.notify_jira.outputs.JIRA_ID }}
