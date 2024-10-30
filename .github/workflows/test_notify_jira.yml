@@ -76,7 +76,7 @@ jobs:
 
   post_jira_comment:
     uses: ./.github/workflows/post_jira_comment.yml
-    if: env.JIRA_ID != ''
+    if: needs.notify_jira.outputs.jira_id != ''
     secrets: inherit
     with:
       jira_id: ${{ needs.notify_jira.outputs.JIRA_ID }}
