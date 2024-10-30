@@ -79,6 +79,6 @@ jobs:
     if: env.JIRA_ID != ''
     secrets: inherit
     with:
-      jira_id: ${{ env.JIRA_ID }}
-      comment: ${{ env.COMMENT }}
+      jira_id: ${{ needs.notify_jira.outputs.JIRA_ID }}
+      comment: ${{ needs.notify_jira.outputs.COMMENT }}
 
