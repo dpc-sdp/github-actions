@@ -26,8 +26,7 @@ jobs:
           echo "Received COMMENT: ${{ inputs.comment }}"
           echo "JIRA_ID=${{ inputs.jira_id }}" >> $GITHUB_ENV
           echo "COMMENT=${{ inputs.comment }}" >> $GITHUB_ENV
-          echo -e "${JIRA_ID}"
-          echo -e "${COMMENT}"
+          
           # Define the JIRA comment API endpoint
           JIRA_API_URL="https://digital-vic.atlassian.net/rest/api/2/issue/${{ inputs.jira_id }}/comment"
 
