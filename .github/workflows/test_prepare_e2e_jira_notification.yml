@@ -77,6 +77,6 @@ jobs:
     needs: [test_prepare_e2e_jira_notification]
     secrets: inherit
     with:
-      jira_id: ${{ needs.notify_jira.outputs.jira_id }}
-      comment: ${{ needs.notify_jira.outputs.comment }}
+      jira_id: ${{ needs.test_prepare_e2e_jira_notification.outputs.jira_id }}
+      comment: ${{ needs.test_prepare_e2e_jira_notification.outputs.comment }}
 
