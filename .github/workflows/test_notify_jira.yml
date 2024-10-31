@@ -82,6 +82,6 @@ jobs:
     needs: [notify_jira]
     secrets: inherit
     with:
-      jira_id: ${{ needs.notify_jira.outputs.JIRA_ID }}
-      comment: ${{ needs.notify_jira.outputs.COMMENT }}
+      jira_id: ${{ needs.notify_jira.outputs.jira_id }}
+      comment: ${{ needs.notify_jira.outputs.comment }}
 
