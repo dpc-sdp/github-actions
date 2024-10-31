@@ -20,7 +20,6 @@ on:
         required: true
         default: ""
 
-
 jobs:
   post_jira_comment:
     runs-on: ubuntu-latest
@@ -28,8 +27,8 @@ jobs:
       - name: Post JIRA Comment
         id: post_jira_comment
         env:
-          JIRA_USERNAME: ${{ secrets.TEST_JIRA_USERNAME }}  # Jira username from secrets
-          JIRA_PASSWORD: ${{ secrets.TEST_JIRA_PASSWORD }}  # Jira password from secrets
+          JIRA_USERNAME: ${{ inputs.jira_password }}  # Jira username from secrets
+          JIRA_PASSWORD: ${{ inputs.jira_username }}  # Jira password from secrets
         run: |
           echo "Received JIRA ID: ${{ inputs.jira_id }}"
           echo "Received COMMENT: ${{ inputs.comment }}"
@@ -43,7 +42,7 @@ jobs:
           # Post the comment to JIRA using basic auth with username and password
           response=$(curl -s -w "%{http_code}" -X POST \
             -H "Content-Type: application/json" \
-            -u "${{ inputs.jira_username }}:${{ inputs.jira_password }}" \
+            -u "${JIRA_USERNAME}:${JIRA_PASSWORD}" \
             --data "{\"body\": \"${COMMENT}\"}" \
             "${JIRA_API_URL}")
 
