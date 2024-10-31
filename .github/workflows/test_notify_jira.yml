@@ -41,7 +41,8 @@ jobs:
           else
             echo "Extracted JIRA ID: $JIRA_ID"
             echo "JIRA_ID=$JIRA_ID" >> $GITHUB_ENV
-            echo "::set-output name=jira_id::$JIRA_ID"
+            echo "jira_id=$JIRA_ID" >> "$GITHUB_OUTPUT"
+
           fi
   
 
@@ -70,7 +71,7 @@ jobs:
           # Print the comment to the console for debugging
           echo -e "COMMENT:\n${COMMENT}"
           echo "COMMENT=$COMMENT" >> $GITHUB_ENV
-          echo "::set-output name=comment::$COMMENT"
+          echo "comment=$COMMENT" >> "$GITHUB_OUTPUT"
 
       # - name: Post JIRA Comment
       #   if: env.JIRA_ID != ''
