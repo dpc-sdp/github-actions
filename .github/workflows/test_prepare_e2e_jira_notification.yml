@@ -74,7 +74,7 @@ jobs:
 
   post_jira_comment:
     uses: ./.github/workflows/post_jira_comment.yml
-    needs: [notify_jira]
+    needs: [test_prepare_e2e_jira_notification]
     secrets: inherit
     with:
       jira_id: ${{ needs.notify_jira.outputs.jira_id }}
