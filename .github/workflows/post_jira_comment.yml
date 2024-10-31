@@ -27,8 +27,8 @@ jobs:
       - name: Post JIRA Comment
         id: post_jira_comment
         env:
-          JIRA_USERNAME: ${{ inputs.jira_password }}  # Jira username from secrets
-          JIRA_PASSWORD: ${{ inputs.jira_username }}  # Jira password from secrets
+          JIRA_USERNAME: ${{ inputs.jira_password }}
+          JIRA_PASSWORD: ${{ inputs.jira_username }}
         run: |
           echo "Received JIRA ID: ${{ inputs.jira_id }}"
           echo "Received COMMENT: ${{ inputs.comment }}"
