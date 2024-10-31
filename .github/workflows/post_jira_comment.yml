@@ -11,6 +11,14 @@ on:
         type: string
         required: true
         default: ""
+      jira_username:
+        type: string
+        required: true
+        default: ""
+      jira_password:
+        type: string
+        required: true
+        default: ""
 
 
 jobs:
@@ -35,7 +43,7 @@ jobs:
           # Post the comment to JIRA using basic auth with username and password
           response=$(curl -s -w "%{http_code}" -X POST \
             -H "Content-Type: application/json" \
-            -u "${JIRA_USERNAME}:${JIRA_PASSWORD}" \
+            -u "${{ inputs.jira_username }}:${{ inputs.jira_password }}" \
             --data "{\"body\": \"${COMMENT}\"}" \
             "${JIRA_API_URL}")
 
