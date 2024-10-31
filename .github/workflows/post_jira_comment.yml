@@ -14,7 +14,7 @@ on:
 
 
 jobs:
-  notify_jira:
+  post_jira_comment:
     runs-on: ubuntu-latest
     steps:
       - name: Post JIRA Comment
@@ -23,6 +23,8 @@ jobs:
           JIRA_USERNAME: ${{ secrets.TEST_JIRA_USERNAME }}  # Jira username from secrets
           JIRA_PASSWORD: ${{ secrets.TEST_JIRA_PASSWORD }}  # Jira password from secrets
         run: |
+          echo "Received JIRA ID: ${{ inputs.jira_id }}"
+          echo "Received COMMENT: ${{ inputs.comment }}"
           echo "JIRA_ID=${{ inputs.jira_id }}" >> $GITHUB_ENV
           echo "COMMENT=${{ inputs.comment }}" >> $GITHUB_ENV
           echo -e "${JIRA_ID}"
