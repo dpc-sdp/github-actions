@@ -1,4 +1,4 @@
-name: prepare_e2e_jira_notification
+name: test_prepare_e2e_jira_notification
 
 on:
   workflow_call:
@@ -9,7 +9,7 @@ on:
         default: ""
 
 jobs:
-  prepare_e2e_jira_notification:
+  test_prepare_e2e_jira_notification:
     runs-on: ubuntu-latest
     outputs:
       jira_id: ${{ steps.extract_jira_id.outputs.jira_id }}
