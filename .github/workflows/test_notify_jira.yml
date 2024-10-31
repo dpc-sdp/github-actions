@@ -87,5 +87,4 @@ jobs:
     with:
       jira_id: ${{ needs.notify_jira.outputs.jira_id }}
       comment: ${{ needs.notify_jira.outputs.comment }}
-      jira_username: ${{ secrets.TEST_JIRA_USERNAME }} 
-      jira_password: ${{ secrets.TEST_JIRA_PASSWORD }} 
+      

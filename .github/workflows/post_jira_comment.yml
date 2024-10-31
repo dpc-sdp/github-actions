@@ -11,14 +11,6 @@ on:
         type: string
         required: true
         default: ""
-      jira_username:
-        type: string
-        required: true
-        default: ""
-      jira_password:
-        type: string
-        required: true
-        default: ""
 
 jobs:
   post_jira_comment:
@@ -27,8 +19,8 @@ jobs:
       - name: Post JIRA Comment
         id: post_jira_comment
         env:
-          JIRA_USERNAME: ${{ inputs.jira_password }}
-          JIRA_PASSWORD: ${{ inputs.jira_username }}
+          JIRA_USERNAME: ${{ secrets.TEST_JIRA_USERNAME }}
+          JIRA_PASSWORD: ${{ secrets.TEST_JIRA_PASSWORD }}
         run: |
           echo "Received JIRA ID: ${{ inputs.jira_id }}"
           echo "Received COMMENT: ${{ inputs.comment }}"
