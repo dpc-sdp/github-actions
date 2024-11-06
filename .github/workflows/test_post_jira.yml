@@ -61,6 +61,7 @@ jobs:
 
           # Print the comment to the console for debugging
           echo "comment=$COMMENT" >> "$GITHUB_OUTPUT"
+          echo "$COMMENT"
           echo "${{ inputs.status }}"
 
   post_jira_comment:
