@@ -42,7 +42,6 @@ jobs:
             echo "Extracted JIRA ID: $JIRA_ID"
             echo "JIRA_ID=$JIRA_ID" >> $GITHUB_ENV
             echo "jira_id=$JIRA_ID" >> "$GITHUB_OUTPUT"
-
           fi
 
       - name: Prepare JIRA Comment
@@ -71,4 +70,3 @@ jobs:
     with:
       jira_id: ${{ needs.test_prepare_jira.outputs.jira_id }}
       comment: ${{ needs.test_prepare_jira.outputs.comment }}
-
