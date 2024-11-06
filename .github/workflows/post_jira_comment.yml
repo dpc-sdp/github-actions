@@ -41,6 +41,7 @@ jobs:
           # Handle the API response
           if [ "$http_code" -eq 201 ]; then
             echo "Comment posted successfully to Jira issue ${{ inputs.jira_id }}"
+            echo "Response Body: $response_body"
           else
             echo "Failed to post comment to Jira issue ${{ inputs.jira_id }}. HTTP Code: $http_code"
             echo "Response Body: $response_body"
