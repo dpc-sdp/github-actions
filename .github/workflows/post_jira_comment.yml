@@ -19,14 +19,12 @@ jobs:
       - name: Post JIRA Comment
         id: post_jira_comment
         env:
-          JIRA_USERNAME: ${{ secrets.JIRA_USERNAME }}
+          JIRA_USERNAME: ${{ secrets.JIRA_USERNAMEaa }}
           JIRA_PASSWORD: ${{ secrets.JIRA_PASSWORD }}
         run: |
           echo "Received JIRA ID: ${{ inputs.jira_id }}"
           echo "Received COMMENT: ${{ inputs.comment }}"
-          echo "JIRA_ID=${{ inputs.jira_id }}" >> $GITHUB_ENV
-          echo "COMMENT=${{ inputs.comment }}" >> $GITHUB_ENV
-          
+
           # Define the JIRA comment API endpoint
           JIRA_API_URL="https://digital-vic.atlassian.net/rest/api/2/issue/${{ inputs.jira_id }}/comment"
 
