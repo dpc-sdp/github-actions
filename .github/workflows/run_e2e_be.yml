@@ -57,7 +57,7 @@ on:
         runner:
           type: string
           required: false
-          default: biggy
+          default: biggy-automated-testing
         tag:
           description: SDP testing Docker image tag
           type: string

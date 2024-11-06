@@ -21,7 +21,7 @@ on:
 jobs:
   api:
     name: api
-    runs-on: biggy
+    runs-on: biggy-automated-testing
     container:
       image: ghcr.io/dpc-sdp/bay/ci-builder:5.x
     steps:
