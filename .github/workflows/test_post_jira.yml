@@ -61,9 +61,6 @@ jobs:
           COMMENT+="Workflow URL: $WORKFLOW_LINK"
 
           # Print the comment to the console for debugging
-          echo -e "COMMENT:\n${COMMENT}"
-          echo "COMMENT=$COMMENT" >> $GITHUB_ENV
-          echo "comment=$COMMENT" >> "$GITHUB_OUTPUT"
           echo "${{ inputs.status }}"
 
   post_jira_comment:
