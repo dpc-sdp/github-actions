@@ -44,4 +44,10 @@ jobs:
           else
             echo "Failed to post comment to Jira issue ${{ inputs.jira_id }}. HTTP Code: $http_code"
             echo "Response Body: $response_body"
+
+            echo '### ⚠️ Failed to post comment to Jira' >> $GITHUB_STEP_SUMMARY
+            echo "#### Issue ID: ${{ inputs.jira_id }}" >> $GITHUB_STEP_SUMMARY
+            echo "#### HTTP Code: $http_code" >> $GITHUB_STEP_SUMMARY
+            echo "#### Response Body: $response_body" >> $GITHUB_STEP_SUMMARY
+
           fi
