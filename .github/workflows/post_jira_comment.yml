@@ -1,0 +1,54 @@
+name: post_jira_comment
+
+on:
+  workflow_call:
+    inputs:
+      jira_id:
+        type: string
+        required: true
+        default: ""
+      comment:
+        type: string
+        required: true
+        default: ""
+
+jobs:
+  post_jira_comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post JIRA Comment
+        id: post_jira_comment
+        env:
+          JIRA_USERNAME: ${{ secrets.JIRA_USERNAME }}
+          JIRA_PASSWORD: ${{ secrets.JIRA_PASSWORD }}
+        run: |
+          echo "Received JIRA ID: ${{ inputs.jira_id }}"
+          echo "Received COMMENT: ${{ inputs.comment }}"
+
+          # Define the JIRA comment API endpoint
+          JIRA_API_URL="https://digital-vic.atlassian.net/rest/api/2/issue/${{ inputs.jira_id }}/comment"
+
+          # Post the comment to JIRA using basic auth with username and password
+          response=$(curl -s -w "%{http_code}" -X POST \
+            -H "Content-Type: application/json" \
+            -u "${JIRA_USERNAME}:${JIRA_PASSWORD}" \
+            --data "{\"body\": \"${{ inputs.comment }}\"}" \
+            "${JIRA_API_URL}")
+
+          http_code="${response:(-3)}"  # Extract HTTP status code (last 3 characters)
+          response_body="${response:0:-3}"  # The response body
+
+          # Handle the API response
+          if [ "$http_code" -eq 201 ]; then
+            echo "Comment posted successfully to Jira issue ${{ inputs.jira_id }}"
+            echo "Response Body: $response_body"
+          else
+            echo "Failed to post comment to Jira issue ${{ inputs.jira_id }}. HTTP Code: $http_code"
+            echo "Response Body: $response_body"
+
+            echo '### ⚠️ Failed to post comment to Jira' >> $GITHUB_STEP_SUMMARY
+            echo "#### Issue ID: ${{ inputs.jira_id }}" >> $GITHUB_STEP_SUMMARY
+            echo "#### HTTP Code: $http_code" >> $GITHUB_STEP_SUMMARY
+            echo "#### Response Body: $response_body" >> $GITHUB_STEP_SUMMARY
+
+          fi
