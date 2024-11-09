@@ -48,5 +48,4 @@ jobs:
             echo "#### Issue ID: ${{ inputs.jira_id }}" >> $GITHUB_STEP_SUMMARY
             echo "#### HTTP Code: $http_code" >> $GITHUB_STEP_SUMMARY
             echo "#### Response Body: $response_body" >> $GITHUB_STEP_SUMMARY
-
           fi
