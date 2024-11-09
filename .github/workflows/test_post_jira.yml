@@ -33,8 +33,8 @@ jobs:
           commit_message=$(echo "$commit_info" | jq -r '.commit.message')
   
           # Extract JIRA ID
-          JIRA_ID=$(echo "$commit_message" | grep -oE 'SCFA-[0-9]{1,5}' || true)  # Prevents non-zero exit code
-  
+          JIRA_ID=$(echo "$commit_message" | grep -oE 'SCFA-[0-9]{1,5}' | head -n 1 || true)
+
           # Check if JIRA ID is found
           if [ -z "$JIRA_ID" ]; then
             echo "No JIRA ID found in commit message: $commit_message"
