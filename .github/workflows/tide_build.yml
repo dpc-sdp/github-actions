@@ -54,7 +54,7 @@ jobs:
     container:
       image: ghcr.io/dpc-sdp/bay/ci-builder:5.x
     steps:
-      - name: Start tide_build
+      - name: Start tide_build (updated)
         run: |
           echo ==> Running tide_build...
       - name: Checkout code
