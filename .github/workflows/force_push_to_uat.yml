@@ -40,6 +40,6 @@ jobs:
           fi
       - name: Force push
         run: |
-          cd /__w/${GITHUB_REPOSITORY#*/}/${GITHUB_REPOSITORY#*/}
+          cd ${GITHUB_WORKSPACE}
           chmod +x .circleci/force-push-to-uat.sh
           .circleci/force-push-to-uat.sh

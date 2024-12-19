@@ -74,7 +74,7 @@ jobs:
       # GitHub Actions does not support cloning to a custom path.
       - name: Copy repo
         run: |
-          cp -R /__w/${GITHUB_REPOSITORY#*/}/${GITHUB_REPOSITORY#*/} /app
+          cp -R ${GITHUB_WORKSPACE} /app
       - name: Run build script
         run: |
           /app/.circleci/build.sh
