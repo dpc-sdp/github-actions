@@ -34,7 +34,7 @@ jobs:
       - name: Copy repo
         run: |
           chown -R $(id -u):$(id -g) $PWD
-          cp -R /__w/${GITHUB_REPOSITORY#*/}/${GITHUB_REPOSITORY#*/} /app
+          cp -R ${GITHUB_WORKSPACE} /app
       - name: Run export script
         run: |
           cd /app
