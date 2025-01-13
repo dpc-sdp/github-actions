@@ -106,6 +106,7 @@ env:
   NIGHTWATCH_OUTPUT: true
   GIT_BRANCH: ${{ github.event.pull_request && github.head_ref || github.ref_name }}
   EYES_APPNAME: ${{ inputs.eyes_appname }}
+  GHA_RUN_ID: ${{ github.run_id }}
 
 jobs:
   run_e2e_fe:
