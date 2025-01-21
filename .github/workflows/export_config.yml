@@ -38,7 +38,7 @@ jobs:
       - name: Run export script
         run: |
           cd /app
-          /app/scripts/export-config-push-uat.sh
+          /app/.circleci/export-config.sh
       - name: Get the release branch
         run: |
           CURRENT_GIT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
