@@ -54,7 +54,7 @@ jobs:
       - name: Run export script
         run: |
           cd /app
-          bash scripts/export_config_push_uat.sh "${{ inputs.branch_name }}"
+          bash ./scripts/export-config-push-uat.sh "${{ inputs.branch_name }}"
 
       - name: Notify completion
         if: success()
