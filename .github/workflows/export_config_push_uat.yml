@@ -1,7 +1,7 @@
 name: export_config
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       branch_name:
         description: "Branch name to export config and push changes (e.g., release/SCFA-1234)"
