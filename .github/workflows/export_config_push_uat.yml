@@ -41,19 +41,22 @@ jobs:
         run: |
           sed -i 's|# DB_IMAGE_SNAPSHOT|DB_IMAGE_SNAPSHOT|' .env
 
-
       - name: Configure Git
         run: |
           git config --global user.email "${{ secrets.DEPLOY_USER_EMAIL }}" && git config --global user.name "${{ secrets.DEPLOY_USER_NAME }}"
-      # GitHub Actions does not support cloning to a custom path.
+
       - name: Copy repo
         run: |
           chown -R $(id -u):$(id -g) $PWD
           cp -R ${GITHUB_WORKSPACE} /app
+
       - name: Run export script
         run: |
           cd /app
           /app/scripts/export-config-push-uat.sh "${{ inputs.branch_name }}"
+        env:
+          DEPLOY_USER_EMAIL: ${{ secrets.DEPLOY_USER_EMAIL }}
+          DEPLOY_USER_NAME: ${{ secrets.DEPLOY_USER_NAME }}
 
       - name: Notify completion
         if: success()
