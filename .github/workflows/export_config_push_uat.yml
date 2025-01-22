@@ -55,7 +55,7 @@ jobs:
           export DEPLOY_USER_EMAIL="${{ secrets.DEPLOY_USER_EMAIL }}"
           export DEPLOY_USER_NAME="${{ secrets.DEPLOY_USER_NAME }}"
           cd /app
-          scripts/export-config.sh "${{ inputs.branch_name }}"
+          scripts/export-config-push-uat.sh "${{ inputs.branch_name }}"
         env:
           DEPLOY_USER_EMAIL: ${{ secrets.DEPLOY_USER_EMAIL }}
           DEPLOY_USER_NAME: ${{ secrets.DEPLOY_USER_NAME }}
