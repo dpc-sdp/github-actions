@@ -54,7 +54,7 @@ jobs:
       - name: Run export script
         run: |
           cd /app
-          bash scripts/export-config-push-uat.sh "${{ inputs.branch_name }}"
+          bash .circleci/export-config.sh "${{ inputs.branch_name }}"
         env:
           DEPLOY_USER_EMAIL: ${{ secrets.DEPLOY_USER_EMAIL }}
           DEPLOY_USER_NAME: ${{ secrets.DEPLOY_USER_NAME }}
