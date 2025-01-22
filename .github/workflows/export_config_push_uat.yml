@@ -53,7 +53,7 @@ jobs:
       - name: Run export script
         run: |
           cd /app
-          /app/.circleci/export-config.sh
+          /app/scripts/export-config-push-uat.sh
 
       - name: Notify completion
         if: success()
