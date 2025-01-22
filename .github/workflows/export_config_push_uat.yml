@@ -15,8 +15,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  DEPLOY_USER_EMAIL: ${{ secrets.DEPLOY_USER_EMAIL }}  # Passing the secret
-  DEPLOY_USER_NAME: ${{ secrets.DEPLOY_USER_NAME }}    # Passing the secret
 
 jobs:
   export_config:
@@ -57,6 +55,9 @@ jobs:
         run: |
           cd /app
           bash scripts/export-config-push-uat.sh "${{ inputs.branch_name }}"
+        env:
+          DEPLOY_USER_EMAIL: ${{ secrets.DEPLOY_USER_EMAIL }}
+          DEPLOY_USER_NAME: ${{ secrets.DEPLOY_USER_NAME }}
 
       - name: Notify completion
         if: success()
