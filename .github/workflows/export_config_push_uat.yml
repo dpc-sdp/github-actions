@@ -52,10 +52,10 @@ jobs:
 
       - name: Run export script
         run: |
-          export DEPLOY_USER_EMAIL="${{ secrets.DEPLOY_USER_EMAIL }}"
-          export DEPLOY_USER_NAME="${{ secrets.DEPLOY_USER_NAME }}"
+          echo "==> Using deploy user email: ${{ secrets.DEPLOY_USER_EMAIL }}"
+          echo "==> Using deploy user name: ${{ secrets.DEPLOY_USER_NAME }}"
           cd /app
-          scripts/export-config-push-uat.sh "${{ inputs.branch_name }}"
+          scripts/export-config-push-uat.sh "${{ inputs.branch_name }}" "${{ secrets.DEPLOY_USER_EMAIL }}" "${{ secrets.DEPLOY_USER_NAME }}"
         env:
           DEPLOY_USER_EMAIL: ${{ secrets.DEPLOY_USER_EMAIL }}
           DEPLOY_USER_NAME: ${{ secrets.DEPLOY_USER_NAME }}
