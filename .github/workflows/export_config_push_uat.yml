@@ -19,7 +19,7 @@ env:
 jobs:
   export_config:
     name: Export Config and Push to UAT
-    runs-on: ubuntu-latest
+    runs-on: biggy
     container:
       image: ghcr.io/dpc-sdp/bay/ci-builder:5.x
 
