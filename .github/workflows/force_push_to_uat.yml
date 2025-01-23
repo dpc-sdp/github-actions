@@ -17,23 +17,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # Fetch full branch history
 
-      - name: Configure Git
+      - name: Fetch and Pull Latest Changes
         run: |
-          git config --global user.email "${{ secrets.DEPLOY_USER_EMAIL }}" 
-          git config --global user.name "${{ secrets.DEPLOY_USER_NAME }}"
+          git fetch origin "${{ inputs.branch_name }}"
+          git checkout "${{ inputs.branch_name }}"
+          git pull origin "${{ inputs.branch_name }}" # Ensure latest commits are present
+
+      - name: Log Branch State
+        run: |
+          echo "Branch state before force-push:"
+          git log --oneline -5
 
       - name: Force Push to UAT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Ensure we are in the correct branch
-
-          git log "${{ inputs.branch_name }}"
-          git checkout "${{ inputs.branch_name }}"
-          
-          # Force push to UAT branch
           git push origin "${{ inputs.branch_name }}:uat" --force
 
       - name: Notify Completion
