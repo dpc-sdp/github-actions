@@ -29,6 +29,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Ensure we are in the correct branch
+
+          git log "${{ inputs.branch_name }}"
           git checkout "${{ inputs.branch_name }}"
           
           # Force push to UAT branch
