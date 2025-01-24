@@ -10,7 +10,7 @@ on:
 
 jobs:
   force_push_to_uat:
-    name: Force Push to UAT
+    name: Force Push Branch to UAT
     runs-on: ubuntu-latest
 
     steps:
