@@ -3,6 +3,11 @@ name: api
 on:
   workflow_call:
     inputs:
+      id:
+        description: Test suite ID
+        type: string
+        required: false
+        default: "be_api"
       be_url:
         description: The backend URL for testing
         type: string
@@ -101,6 +106,8 @@ jobs:
     secrets: inherit
     with:
       workflow_name: BE API
+      workflow_id: ${{ inputs.id }}
+      workflow_reusable_name: "run_api_be"
       test_type: ":postman:"
       test_subtype: ":smoke-test:"
       artifact_name: "core-test-report"
