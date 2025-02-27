@@ -105,6 +105,7 @@ jobs:
     needs: [api]
     secrets: inherit
     with:
+      state: ${{ needs.api.result }}
       workflow_name: BE API
       workflow_id: ${{ inputs.id }}
       workflow_reusable_name: "run_api_be"
