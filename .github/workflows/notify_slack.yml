@@ -40,15 +40,26 @@ on:
         description: Name of the report file
         type: string
         required: true
+      state:
+        description: Check state to set
+        type: string
+        required: false
+        default: ""
 jobs:
   slack_notify:
     name: sdp-test-report
     runs-on: ubuntu-latest
     if: always()
     steps:
+    - name: Set explicitly provided workflow state
+      if: ${{ inputs.state != '' }}
+      run: |
+        echo "WORKFLOW_CONCLUSION=${{ inputs.state }}" >> $GITHUB_ENV
     - name: Wait 15s for previous jobs to conclude
+      if: ${{ inputs.state == '' }}
       run: sleep 15
     - uses: dpc-sdp/workflow-conclusion-action@main
+      if: ${{ inputs.state == '' }}
       with:
         JOB_ID: ${{ inputs.workflow_id }}
         REUSABLE_WORKFLOW_NAME: ${{ inputs.workflow_reusable_name }}
