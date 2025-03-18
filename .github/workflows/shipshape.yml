@@ -1,0 +1,50 @@
+name: shipshape
+
+on:
+  workflow_call:
+
+# Add permissions block
+permissions:
+  checks: write
+  contents: read
+  pull-requests: write
+
+env:
+  SDP_PLATFORM_RULES_VERSION: 1.0.0
+
+jobs:
+  audit:
+    name: shipshape_audit
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/dpc-sdp/bay/ci-builder:6.x
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Get Cached SDP Platform Rules
+        id: cache-sdp-rules
+        uses: actions/cache@v4
+        with:
+          path: shipshape.yml
+          key: sdp-platform-rules-${{ env.SDP_PLATFORM_RULES_VERSION }}
+          restore-keys: |
+            sdp-platform-rules-
+      - name: Download SDP Platform Rules if not cached
+        if: steps.cache-sdp-rules.outputs.cache-hit != 'true'
+        run: |
+          curl -L -o shipshape.yml https://raw.githubusercontent.com/dpc-sdp/sdp-platform-rules/v${SDP_PLATFORM_RULES_VERSION}/shipshape.yml
+      - name: Audit codebase
+        shell: bash
+        run: |
+          # Run shipshape
+          shipshape run . -f shipshape.yml --error-code --output-format table --output-file shipshape-results.xml --output-file-format junit > shipshape-results.txt
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with: 
+          path: shipshape-results.txt
+      - name: Publish junit report
+        uses: mikepenz/action-junit-report@v5
+        if: always()
+        with:
+          report_paths: shipshape-results.xml

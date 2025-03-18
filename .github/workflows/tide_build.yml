@@ -17,6 +17,12 @@ on:
 env:
   REGISTRY: ghcr.io
 
+# Add permissions block with required permissions used for shipshape audit
+permissions:
+  checks: write
+  contents: read
+  pull-requests: write
+
 jobs:
   check-nginx-config:
     name: check-nginx-config
@@ -92,3 +98,9 @@ jobs:
         with:
           name: behat-results
           path: /tmp/artifacts
+
+  shipshape-audit:
+    name: shipshape_audit
+    uses: ./.github/workflows/shipshape.yml
+    secrets: inherit
+    
