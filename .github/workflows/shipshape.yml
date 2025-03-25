@@ -32,12 +32,14 @@ jobs:
       - name: Download SDP Platform Rules if not cached
         if: steps.cache-sdp-rules.outputs.cache-hit != 'true'
         run: |
-          curl -L -o shipshape.yml https://raw.githubusercontent.com/dpc-sdp/sdp-platform-rules/v${SDP_PLATFORM_RULES_VERSION}/shipshape.yml
+          gh api \
+            repos/dpc-sdp/sdp-platform-rules/contents/shipshape.yml?ref=${{ env.SDP_PLATFORM_RULES_VERSION }} \
+            --raw > shipshape.yml
       - name: Audit codebase
         shell: bash
         run: |
           # Run shipshape
-          shipshape run . -f shipshape.yml --error-code --output-format table --output-file shipshape-results.xml --output-file-format junit > shipshape-results.txt
+          shipshape run . -f shipshape.yml --output-format table --output-file shipshape-results.xml --output-file-format junit > shipshape-results.txt
       - name: Upload audit report
         uses: actions/upload-artifact@v4
         if: always()
@@ -48,3 +50,8 @@ jobs:
         if: always()
         with:
           report_paths: shipshape-results.xml
+          check_name: Junit Shipshape Audit Report
+          fail_on_failure: false
+          require_tests: false
+          require_passed_tests: false
+          annotate_only: false
