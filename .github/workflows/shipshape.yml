@@ -32,9 +32,9 @@ jobs:
       - name: Download SDP Platform Rules if not cached
         if: steps.cache-sdp-rules.outputs.cache-hit != 'true'
         run: |
-          gh api \
-            repos/dpc-sdp/sdp-platform-rules/contents/shipshape.yml?ref=${{ env.SDP_PLATFORM_RULES_VERSION }} \
-            --raw > shipshape.yml
+          curl -s -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          "https://raw.githubusercontent.com/dpc-sdp/sdp-platform-rules/${{ env.SDP_PLATFORM_RULES_VERSION }}/shipshape.yml" \
+          -o shipshape.yml
       - name: Audit codebase
         shell: bash
         run: |
@@ -43,7 +43,7 @@ jobs:
       - name: Upload audit report
         uses: actions/upload-artifact@v4
         if: always()
-        with: 
+        with:
           path: shipshape-results.txt
       - name: Publish junit report
         uses: mikepenz/action-junit-report@v5
