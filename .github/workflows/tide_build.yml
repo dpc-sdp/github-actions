@@ -13,6 +13,11 @@ on:
         type: string
         required: false
         default: biggy
+      run_shipshape_audit:
+        description: Set to true to run shipshape audit.
+        type: boolean
+        required: false
+        default: false
 
 env:
   REGISTRY: ghcr.io
@@ -101,6 +106,6 @@ jobs:
 
   shipshape-audit:
     name: shipshape_audit
+    if: ${{ inputs.run_shipshape_audit == true }}
     uses: ./.github/workflows/shipshape.yml
     secrets: inherit
-    
