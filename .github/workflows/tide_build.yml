@@ -1,6 +1,6 @@
 name: tide_build
 
-on: 
+on:
   workflow_call:
     inputs:
       module_build:
@@ -52,7 +52,7 @@ jobs:
     name: tide_build
     runs-on: ${{ inputs.runner }}
     container:
-      image: ghcr.io/dpc-sdp/bay/ci-builder:5.x
+      image: ghcr.io/dpc-sdp/bay/ci-builder:6.x
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -92,3 +92,11 @@ jobs:
         with:
           name: behat-results
           path: /tmp/artifacts
+      - name: Run PHPUnit Tests
+        if: always()
+        run: |
+          /app/.circleci/phpunit_tests.sh
+      - name: Run PHPUnit Tests - code coverage
+        if: always()
+        run: |
+          /app/.circleci/code_coverage.sh
