@@ -9,9 +9,6 @@ permissions:
   contents: read
   pull-requests: write
 
-env:
-  SDP_PLATFORM_RULES_VERSION: 1.0.0
-
 jobs:
   audit:
     name: shipshape_audit
@@ -21,25 +18,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Get Cached SDP Platform Rules
-        id: cache-sdp-rules
-        uses: actions/cache@v4
-        with:
-          path: shipshape.yml
-          key: sdp-platform-rules-${{ env.SDP_PLATFORM_RULES_VERSION }}
-          restore-keys: |
-            sdp-platform-rules-
-      - name: Download SDP Platform Rules if not cached
-        if: steps.cache-sdp-rules.outputs.cache-hit != 'true'
-        run: |
-          curl -s -L -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-          "https://raw.githubusercontent.com/dpc-sdp/sdp-platform-rules/${{ env.SDP_PLATFORM_RULES_VERSION }}/shipshape.yml" \
-          -o shipshape.yml
       - name: Audit codebase
         shell: bash
         run: |
           # Run shipshape
-          shipshape run . -f shipshape.yml --output-format table --output-file shipshape-results.xml --output-file-format junit > shipshape-results.txt
+          shipshape run . -f .github/workflows/shipshape/shipshape.yml --output-format table --output-file shipshape-results.xml --output-file-format junit > shipshape-results.txt
       - name: Upload audit report
         uses: actions/upload-artifact@v4
         if: always()
