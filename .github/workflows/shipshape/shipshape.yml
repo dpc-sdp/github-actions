@@ -1,0 +1,108 @@
+collect:
+  #---------------------------------------------------------------------------
+  # CORE EXTENSION CONFIGURATION
+  #---------------------------------------------------------------------------
+  # File containing core extension configuration
+  core-extension-file:
+    file:read:
+      path: config/sync/core.extension.yml
+
+  # Get the list of modules
+  modules:
+    yaml:key:
+      input: core-extension-file
+      path: module
+      keys-only: true
+
+  # Get the site profile
+  profile:
+    yaml:key:
+      input: core-extension-file
+      path: profile
+      ignore-not-found: true
+
+  #---------------------------------------------------------------------------
+  # LAGOON CONFIGURATION
+  #---------------------------------------------------------------------------
+  # Lagoon configuration file
+  lagoon-file:
+    file:read:
+      path: .lagoon.yml
+
+  # TLS-ACME settings for different environments
+  production-tls-acme:
+    yaml:key:
+      input: lagoon-file
+      path: production_routes.active.routes[0].nginx-php[0].*.tls-acme
+      ignore-not-found: true
+
+  master-tls-acme:
+    yaml:key:
+      input: lagoon-file
+      path: environments.master.routes[0].nginx-php[0].*.tls-acme
+      ignore-not-found: true
+
+  uat-tls-acme:
+    yaml:key:
+      input: lagoon-file
+      path: environments.uat.routes[0].nginx-php[0].*.tls-acme
+      ignore-not-found: true
+
+  develop-tls-acme:
+    yaml:key:
+      input: lagoon-file
+      path: environments.develop.routes[0].nginx-php[0].*.tls-acme
+      ignore-not-found: true
+
+analyse:
+  #---------------------------------------------------------------------------
+  # MODULE CHECKS
+  #---------------------------------------------------------------------------
+  lagoon-logs-check:
+    allowed:list:
+      description: "Lagoon logs module is not enabled"
+      input: modules
+      required:
+        - lagoon_logs
+      severity: high
+
+  #---------------------------------------------------------------------------
+  # PROFILE CHECKS
+  #---------------------------------------------------------------------------
+  tide-profile-check:
+    regex:not-match:
+      description: "Verify Tide profile is correctly set"
+      input: profile
+      pattern: "^tide$"
+      severity: high
+
+  #---------------------------------------------------------------------------
+  # TLS-ACME CHECKS
+  #---------------------------------------------------------------------------
+  production-tls-acme-check:
+    regex:not-match:
+      description: "Verify TLS-ACME is enabled for the production environment"
+      input: production-tls-acme
+      pattern: "^false$"
+      severity: high
+
+  master-tls-acme-check:
+    regex:not-match:
+      description: "Verify TLS-ACME is enabled for the master environment"
+      input: master-tls-acme
+      pattern: "^false$"
+      severity: high
+
+  uat-tls-acme-check:
+    regex:not-match:
+      description: "Verify TLS-ACME is enabled for the UAT environment"
+      input: uat-tls-acme
+      pattern: "^false$"
+      severity: high
+
+  develop-tls-acme-check:
+    regex:not-match:
+      description: "Verify TLS-ACME is enabled for the develop environment"
+      input: develop-tls-acme
+      pattern: "^false$"
+      severity: high

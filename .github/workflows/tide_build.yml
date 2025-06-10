@@ -1,6 +1,6 @@
 name: tide_build
 
-on: 
+on:
   workflow_call:
     inputs:
       module_build:
@@ -13,40 +13,51 @@ on:
         type: string
         required: false
         default: biggy
+      run_shipshape_audit:
+        description: Set to true to run shipshape audit.
+        type: boolean
+        required: false
+        default: false
 
 env:
   REGISTRY: ghcr.io
+
+# Add permissions block with required permissions used for shipshape audit
+permissions:
+  checks: write
+  contents: read
+  pull-requests: write
 
 jobs:
   check-nginx-config:
     name: check-nginx-config
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-    - name: Set up Docker
-      uses: docker/setup-buildx-action@v2
-    - name: Create Docker network
-      run: docker network create test-network
-    - name: Run PHP container
-      run: docker run -d --name php --network test-network php:7.4-fpm
-    - name: Run Nginx container with long-running command
-      run: docker run -d --name nginx-container --network test-network ghcr.io/dpc-sdp/bay/nginx:6.x tail -f /dev/null
-    - name: Test Nginx configuration Results
-      run: |
-        docker exec nginx-container sh -c "nginx -t"
-      continue-on-error: true
-    - name: Check Nginx test results
-      run: |
-        RESULT=$(docker exec nginx-container sh -c "nginx -t" 2>&1)
-        echo "$RESULT"
-        if echo "$RESULT" | grep -q 'successful'; then
-          echo "Nginx configuration test successful"
-        else
-          echo "Nginx configuration test failed"
-          exit 1
-        fi
-      shell: bash
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
+      - name: Create Docker network
+        run: docker network create test-network
+      - name: Run PHP container
+        run: docker run -d --name php --network test-network php:7.4-fpm
+      - name: Run Nginx container with long-running command
+        run: docker run -d --name nginx-container --network test-network ghcr.io/dpc-sdp/bay/nginx:6.x tail -f /dev/null
+      - name: Test Nginx configuration Results
+        run: |
+          docker exec nginx-container sh -c "nginx -t"
+        continue-on-error: true
+      - name: Check Nginx test results
+        run: |
+          RESULT=$(docker exec nginx-container sh -c "nginx -t" 2>&1)
+          echo "$RESULT"
+          if echo "$RESULT" | grep -q 'successful'; then
+            echo "Nginx configuration test successful"
+          else
+            echo "Nginx configuration test failed"
+            exit 1
+          fi
+        shell: bash
 
   build_tide:
     name: tide_build
@@ -92,3 +103,9 @@ jobs:
         with:
           name: behat-results
           path: /tmp/artifacts
+
+  shipshape-audit:
+    name: shipshape_audit
+    if: ${{ inputs.run_shipshape_audit == true }}
+    uses: ./.github/workflows/shipshape.yml
+    secrets: inherit
