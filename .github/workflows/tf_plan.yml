@@ -28,7 +28,8 @@ env:
   SUMOLOGIC_ACCESSKEY: ${{ secrets.SUMOLOGIC_ACCESSKEY }}
   CONSTELLIX_API_KEY:  ${{ secrets.CONSTELLIX_API_KEY }}
   CONSTELLIX_SECRET_KEY:  ${{ secrets.CONSTELLIX_SECRET_KEY }}
-
+  TF_VAR_QUANT_BEARER: ${{ secrets.QUANT_BEARER }}
+  
 jobs:
   plan:
     runs-on: ubuntu-latest
