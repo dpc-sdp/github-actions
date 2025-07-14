@@ -23,10 +23,10 @@ env:
   REGISTRY: ghcr.io
 
 # Add permissions block with required permissions used for shipshape audit
-permissions:
-  checks: write
-  contents: read
-  pull-requests: write
+# permissions:
+#   checks: write
+#   contents: read
+#   pull-requests: write
 
 jobs:
   check-nginx-config:
