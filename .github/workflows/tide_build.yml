@@ -22,7 +22,7 @@ on:
 env:
   REGISTRY: ghcr.io
 
-Add permissions block with required permissions used for shipshape audit
+# Add permissions block with required permissions used for shipshape audit
 permissions:
   checks: write
   contents: read
