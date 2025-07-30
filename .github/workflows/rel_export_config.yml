@@ -16,7 +16,7 @@ jobs:
     name: Export Config and Push to Branch
     runs-on: biggy
     container:
-      image: ghcr.io/dpc-sdp/bay/ci-builder:5.x
+      image: ghcr.io/dpc-sdp/bay/ci-builder:6.x
 
     steps:
       - name: Checkout code

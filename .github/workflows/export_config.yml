@@ -11,7 +11,7 @@ jobs:
     if: startsWith(github.ref, 'refs/heads/automation/')
     runs-on: biggy
     container:
-      image: ghcr.io/dpc-sdp/bay/ci-builder:5.x
+      image: ghcr.io/dpc-sdp/bay/ci-builder:6.x
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
