@@ -28,7 +28,7 @@ jobs:
     name: api
     runs-on: biggy-automated-testing
     container:
-      image: ghcr.io/dpc-sdp/bay/ci-builder:5.x
+      image: ghcr.io/dpc-sdp/bay/ci-builder:6.x
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
