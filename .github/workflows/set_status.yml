@@ -16,7 +16,12 @@ on:
         type: string
         required: false
       state:
-        description: Check state to set
+        description: This is deprecated from 1.6.2. User `status` instead.
+        type: string
+        required: false
+        default: ""
+      status:
+        description: Check status to set
         type: string
         required: false
         default: ""
@@ -28,11 +33,11 @@ jobs:
     steps:
       - name: Determine workflow state if not explicitly provided
         uses: dpc-sdp/workflow-conclusion-action@main
-        if: ${{ inputs.state == '' }}
+        if: ${{ inputs.status == '' && inputs.state == '' }}
       - name: Set explicitly provided workflow state
-        if: ${{ inputs.state != '' }}
+        if: ${{ inputs.status != '' || inputs.state != ''}}
         run: |
-          echo "WORKFLOW_CONCLUSION=${{ inputs.state }}" >> $GITHUB_ENV
+          echo "WORKFLOW_CONCLUSION=${{ inputs.status || inputs.state }}" >> $GITHUB_ENV
       - name: Set commit status in the GitHub API
         run: |
           curl -X POST \
