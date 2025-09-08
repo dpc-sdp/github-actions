@@ -16,7 +16,7 @@ on:
         type: string
         required: false
       state:
-        description: Check state to set
+        description: "Check state to set. Can be one of: error, failure, pending, success"
         type: string
         required: false
         default: ""
@@ -33,6 +33,7 @@ jobs:
         if: ${{ inputs.state != '' }}
         run: |
           echo "WORKFLOW_CONCLUSION=${{ inputs.state }}" >> $GITHUB_ENV
+          echo "Workflow status is '${{ inputs.state }}'"
       - name: Set commit status in the GitHub API
         run: |
           curl -X POST \
