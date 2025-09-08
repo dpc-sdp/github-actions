@@ -1,0 +1,39 @@
+name: 'Test get status'
+description: 'Get status of e2e workflow'
+
+inputs:
+  job_results:
+    description: 'JSON string of job results from needs context'
+    required: true
+
+outputs:
+  github_state:
+    description: 'GitHub API compatible state (success/failure/error/pending)'
+    value: ${{ steps.calculate.outputs.github_state }}
+  test_status:
+    description: 'Human-readable status (passed/failed/cancelled)'
+    value: ${{ steps.calculate.outputs.test_status }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Calculate overall status
+      id: calculate
+      shell: bash
+      run: |
+        echo "Analyzing job results..."
+        echo "Job results JSON: ${{ inputs.job_results }}"
+        # Check if any job failed
+        if [[ "${{ contains(toJSON(needs.*.result), 'failure') }}" == "true" ]]; then
+          echo "github_state=failure" >> $GITHUB_OUTPUT
+          echo "test_status=failed" >> $GITHUB_OUTPUT
+          echo "Found at least one failure"
+        elif [[ "${{ contains(toJSON(needs.*.result), 'cancelled') }}" == "true" ]]; then
+          echo "github_state=error" >> $GITHUB_OUTPUT
+          echo "test_status=cancelled" >> $GITHUB_OUTPUT
+          echo "Found at least one cancelled job"
+          else
+          echo "github_state=success" >> $GITHUB_OUTPUT
+          echo "test_status=passed" >> $GITHUB_OUTPUT
+            echo "No failures found"
+          fi
