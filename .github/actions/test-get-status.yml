@@ -24,11 +24,11 @@ runs:
         echo "Analyzing job results..."
         echo "Job results JSON: ${{ inputs.job_results }}"
         # Check if any job failed
-        if [[ "${{ contains(toJSON(needs.*.result), 'failure') }}" == "true" ]]; then
+        if [[ "${{ contains(inputs.job_results, 'failure') }}" == "true" ]]; then
           echo "github_state=failure" >> $GITHUB_OUTPUT
           echo "test_status=failed" >> $GITHUB_OUTPUT
           echo "Found at least one failure"
-        elif [[ "${{ contains(toJSON(needs.*.result), 'cancelled') }}" == "true" ]]; then
+        elif [[ "${{ contains(inputs.job_results, 'cancelled') }}" == "true" ]]; then
           echo "github_state=error" >> $GITHUB_OUTPUT
           echo "test_status=cancelled" >> $GITHUB_OUTPUT
           echo "Found at least one cancelled job"
