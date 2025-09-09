@@ -32,7 +32,7 @@ runs:
           echo "github_state=error" >> $GITHUB_OUTPUT
           echo "test_status=cancelled" >> $GITHUB_OUTPUT
           echo "Found at least one cancelled job"
-          else
+        else
           echo "github_state=success" >> $GITHUB_OUTPUT
           echo "test_status=passed" >> $GITHUB_OUTPUT
             echo "No failures found"
