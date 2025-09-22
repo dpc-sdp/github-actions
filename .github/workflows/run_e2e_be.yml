@@ -93,6 +93,7 @@ env:
   # Project secrets
   PREMIER_MAILGUN_DEV_TOKEN: ${{ secrets.TEST_PREMIER_MAILGUN_DEV_TOKEN }}
   # Keys
+  API_TOKEN_FTP_JIRA: ${{ secrets.TEST_API_TOKEN_FTP_JIRA }}
   BROWSERSTACK_USER: ${{ secrets.TEST_BROWSERSTACK_USER }}
   BROWSERSTACK_KEY: ${{ secrets.TEST_BROWSERSTACK_KEY }}
   # Settings
