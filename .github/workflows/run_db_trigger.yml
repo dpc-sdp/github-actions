@@ -35,7 +35,7 @@ on:
         required: true
       SLACK_WEBHOOK_URL:
         required: true
-      MARIADB_ROOT_PASSWORD:
+      DB_IMAGE_MARIADB_ROOT_PASSWORD:
         required: true
 
 env:
@@ -103,7 +103,7 @@ jobs:
           fi
 
       - name: Gracefully shutdown the intermediary container
-        run: docker exec -i "${{ steps.container.outputs.id }}" mysqladmin -u root -p${{ secrets.MARIADB_ROOT_PASSWORD }} shutdown
+        run: docker exec -i "${{ steps.container.outputs.id }}" mysqladmin -u root -p${{ secrets.DB_IMAGE_MARIADB_ROOT_PASSWORD }} shutdown
 
       - name: Download the DB image dockerfile
         run: curl -o Dockerfile.seed https://raw.githubusercontent.com/dpc-sdp/github-actions/main/.docker/Dockerfile.seed
