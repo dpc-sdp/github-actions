@@ -104,6 +104,7 @@ jobs:
 
       - name: Gracefully shutdown the intermediary container
         run: docker exec -i "${{ steps.container.outputs.id }}" mysqladmin -u root -p${{ secrets.DB_IMAGE_MARIADB_ROOT_PASSWORD }} shutdown
+        continue-on-error: true
 
       - name: Download the DB image dockerfile
         run: curl -o Dockerfile.seed https://raw.githubusercontent.com/dpc-sdp/github-actions/main/.docker/Dockerfile.seed
