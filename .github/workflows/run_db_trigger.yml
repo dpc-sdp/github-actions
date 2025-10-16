@@ -162,21 +162,3 @@ jobs:
           if_mention: 'always'
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
-      - name: Send Notification to Slack on Success
-        if: ${{ needs.export-db.result == 'success' }}  
-        uses: 8398a7/action-slack@v3
-        with:
-          status: ${{ needs.export-db.result }}
-          text: 'The db-trigger workflow for project "${{ inputs.project }}" in repository "${{ github.repository }}" has succeeded.'
-          fields: 'project: ${{ inputs.project }}, repo: ${ { github.repository }}'
-          mention: 'channel'
-          author_name: 'DPC TEAM'
-          channel: '#dpc-events'
-          color: 'good'  
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
-
-
-
