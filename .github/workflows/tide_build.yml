@@ -27,6 +27,7 @@ permissions:
   checks: write
   contents: read
   pull-requests: write
+  packages: read
 
 jobs:
   check-nginx-config:
