@@ -125,7 +125,7 @@ jobs:
       -
         name: "Wait up servers in case they are idle"
         run: |
-          curl ${BE_BASE_URL} -s -S --max-time 1000 --write-out '%{http_code}' --output /dev/null;
+          curl ${TEST_BE_BASE_URL} -s -S --max-time 1000 --write-out '%{http_code}' --output /dev/null;
       -
         name: Run Backend tests
         run: |
