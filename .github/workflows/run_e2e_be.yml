@@ -120,6 +120,7 @@ jobs:
         run: |
           echo 'TEST_BE_BASE_URL=${{ inputs.be_url }}' >> $GITHUB_ENV
           echo 'TEST_PROJECT=${{ inputs.project }}' >> $GITHUB_ENV
+          echo 'TEST_FE_BASE_URL=https://develop.reference-sdp-vic-gov-au.sdp.delivery' >> $GITHUB_ENV
       -
         name: Check test environment urls
         run: |
