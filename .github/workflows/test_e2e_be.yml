@@ -1,0 +1,172 @@
+name: test_e2e_be
+
+on:
+    workflow_call:
+      inputs:
+        name:
+          description: Test suite name
+          type: string
+          required: false
+          default: "BE E2E"
+        id:
+          description: Test suite ID
+          type: string
+          required: false
+          default: ""
+        be_url:
+          description: The backend URL for testing
+          type: string
+          required: true
+          default: ""
+        project:
+          description: Lagoon project name
+          type: string
+          required: true
+          default: ""
+        browser:
+          description: Browser, default to headless Chrome.
+          type: string
+          default: "chrome"
+        app:
+          type: string
+          default: 'backend'
+        test_type:
+          type: string
+          required: false
+          default: ':e2e:'
+        test_subtype:
+          type: string
+          required: false
+          default: ''
+        runner:
+          type: string
+          required: false
+          default: biggy-automated-testing
+        tag:
+          description: SDP testing Docker image tag
+          type: string
+          required: false
+          default: migration
+        slack_channel:
+          type: string
+          required: false
+          default: "sdp-test-report"
+        slack_notify:
+          description: When to send the Slack notifications
+          type: string
+          required: false
+          default: "release_only"
+        test_status:
+          type: boolean
+          default: false
+
+env:
+  # Test users
+  TEST_HTTP_AUTH_USER: ${{ secrets.TEST_HTTP_AUTH_USER }}
+  TEST_HTTP_AUTH_PASS: ${{ secrets.TEST_HTTP_AUTH_PASS }}
+  TEST_BE_ADMIN_USER: ${{ secrets.TEST_BE_ADMIN_USER }}
+  TEST_BE_ADMIN_PASS: ${{ secrets.TEST_BE_ADMIN_PASS }}
+  TEST_BE_SITE_ADMIN_USER: ${{ secrets.TEST_BE_SITE_ADMIN_USER }}
+  TEST_BE_SITE_ADMIN_PASS: ${{ secrets.TEST_BE_SITE_ADMIN_PASS }}
+  TEST_BE_EDITOR_USER: ${{ secrets.TEST_BE_EDITOR_USER }}
+  TEST_BE_EDITOR_PASS: ${{ secrets.TEST_BE_EDITOR_PASS }}
+  ##TODO: Add to secrets
+  # TEST_BE_APPROVER_USER: ${{ secrets.TEST_BE_APPROVER_USER }}
+  # TEST_BE_APPROVER_PASS: ${{ secrets.TEST_BE_APPROVER_PASS }}
+  # TEST_BE_DATAIMPORTER_USER: ${{ secrets.TEST_BE_DATAIMPORTER_USER }}
+  # TEST_BE_DATAIMPORTER_PASS: ${{ secrets.TEST_BE_DATAIMPORTER_PASS }}
+  TEST_BE_APPROVER_USER: ${{ secrets.TEST_BE_APPROVER_USER }}
+  TEST_BE_APPROVER_PASS: ${{ secrets.TEST_BE_APPROVER_PASS }}
+  TEST_BE_PREVIEWER_USER: ${{ secrets.TEST_BE_PREVIEWER_USER }}
+  TEST_BE_PREVIEWER_PASS: ${{ secrets.TEST_BE_PREVIEWER_PASS }}
+  TEST_BE_CONTRIBUTOR_USER: ${{ secrets.TEST_BE_CONTRIBUTOR_USER }}
+  TEST_BE_CONTRIBUTOR_PASS: ${{ secrets.TEST_BE_CONTRIBUTOR_PASS }}
+  TEST_APPLITOOLS_API_KEY: ${{ secrets.TEST_APPLITOOLS_API_KEY }}
+  # Project secrets
+  PREMIER_MAILGUN_DEV_TOKEN: ${{ secrets.TEST_PREMIER_MAILGUN_DEV_TOKEN }}
+  # Keys
+  FTP_JIRA_EMAIL: ${{ secrets.TEST_FTP_JIRA_EMAIL }}
+  FTP_JIRA_API_TOKEN: ${{ secrets.TEST_FTP_JIRA_API_TOKEN }}
+  BROWSERSTACK_USER: ${{ secrets.TEST_BROWSERSTACK_USER }}
+  BROWSERSTACK_KEY: ${{ secrets.TEST_BROWSERSTACK_KEY }}
+  # Settings
+  TESTID: ${{ inputs.test_id }}
+  NIGHTWATCH_HEADLESS: true
+  NIGHTWATCH_OUTPUT: true
+
+
+jobs:
+  test_e2e_be:
+    name: test_e2e_be
+    runs-on: ${{ inputs.runner }}
+    defaults:
+      run:
+        working-directory: /app
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/sdp-testing-playwright:${{ inputs.tag }}
+      credentials:
+        username: ${{ secrets.REGISTRY_USER }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
+    steps:
+      -
+        name: Set up Environment variables
+        run: |
+          echo 'TEST_BE_BASE_URL=${{ inputs.be_url }}' >> $GITHUB_ENV
+          echo 'TEST_PROJECT=${{ inputs.project }}' >> $GITHUB_ENV
+      -
+        name: Check test environment urls
+        run: |
+          echo $TEST_BE_BASE_URL
+          echo $TEST_PROJECT
+      -
+        name: "Wait up servers in case they are idle"
+        run: |
+          curl ${TEST_BE_BASE_URL} -s -S --max-time 1000 --write-out '%{http_code}' --output /dev/null;
+      -
+        name: Run Backend tests
+        run: |
+          npm run e2e:backend --max-failures=10
+          npm run e2e:backend -- \
+          --workers=6 \
+          --max-failures=10
+      - uses: actions/upload-artifact@v6
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report-backend
+          path: /app/playwright-report/
+          retention-days: 30
+      - name: Publish Test Report (summary-report)
+        uses: ctrf-io/github-test-reporter@v1
+        with:
+          report-path: '/app/ctrf/*.json'
+          summary-report: true
+        if: always()
+      - name: Publish Test Report (file-report)
+        uses: ctrf-io/github-test-reporter@v1
+        with:
+          report-path: '/app/ctrf/*.json'
+          file-report: true
+        if: always()
+  notify_slack:
+    uses: ./.github/workflows/notify_slack.yml
+    if: |
+      always() &&
+      ( inputs.slack_notify == 'always' ||
+        ( inputs.slack_notify == 'release_only' &&
+          ( startsWith(github.ref_name, 'release/') ||
+            contains(fromJSON('["uat", "master", "standby", "production"]'), github.ref_name)
+          )
+        )
+      )
+    needs: [test_e2e_be]
+    secrets: inherit
+    with:
+      workflow_name: ${{ inputs.name }}
+      workflow_id: ${{ inputs.id }}
+      workflow_reusable_name: "test_e2e_be"
+      test_type: ${{ inputs.test_type }}
+      test_subtype: ${{ inputs.test_subtype }}
+      artifact_name: "test-reports-${{ inputs.name }}"
+      be_url: ${{ inputs.be_url }}
+      project: ${{ inputs.project }}
+      slack_channel: ${{ inputs.slack_channel }}
