@@ -125,7 +125,6 @@ jobs:
       -
         name: Run Backend tests
         run: |
-          npm run e2e:backend --max-failures=10
           npm run e2e:backend -- \
           --workers=6 \
           --max-failures=10
