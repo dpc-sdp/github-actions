@@ -23,13 +23,6 @@ on:
           type: string
           required: true
           default: ""
-        browser:
-          description: Browser, default to headless Chrome.
-          type: string
-          default: "chrome"
-        app:
-          type: string
-          default: 'backend'
         test_type:
           type: string
           required: false
