@@ -86,6 +86,7 @@ env:
   TESTID: ${{ inputs.test_id }}
   NIGHTWATCH_HEADLESS: true
   NIGHTWATCH_OUTPUT: true
+  # PW Settings
 
 
 jobs:
@@ -119,7 +120,7 @@ jobs:
         name: Run Backend tests
         run: |
           npm run e2e:backend -- \
-          --workers=10 \
+          --workers=6 \
           --max-failures=10
       - uses: actions/upload-artifact@v6
         if: ${{ !cancelled() }}
