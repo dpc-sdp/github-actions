@@ -119,7 +119,7 @@ jobs:
         name: Run Backend tests
         run: |
           npm run e2e:backend -- \
-          --workers=6 \
+          --workers=10 \
           --max-failures=10
       - uses: actions/upload-artifact@v6
         if: ${{ !cancelled() }}
