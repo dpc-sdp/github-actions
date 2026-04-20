@@ -43,12 +43,12 @@ on:
         slack_channel:
           type: string
           required: false
-          default: "sdp-test-report"
+          default: "sdp-test-report-dev"
         slack_notify:
           description: When to send the Slack notifications
           type: string
           required: false
-          default: "release_only"
+          default: "always"
         test_status:
           type: boolean
           default: false
@@ -64,8 +64,8 @@ env:
   TEST_BE_EDITOR_USER: ${{ secrets.TEST_BE_EDITOR_USER }}
   TEST_BE_EDITOR_PASS: ${{ secrets.TEST_BE_EDITOR_PASS }}
   ##TODO: Add to secrets
-  # TEST_BE_APPROVER_USER: ${{ secrets.TEST_BE_APPROVER_USER }}
-  # TEST_BE_APPROVER_PASS: ${{ secrets.TEST_BE_APPROVER_PASS }}
+  # TEST_BE_APPROVER_PLUS_USER: ${{ secrets.TEST_BE_APPROVER_PLUS_USER }}
+  # TEST_BE_APPROVER_PLUS_PASS: ${{ secrets.TEST_BE_APPROVER_PLUS_PASS }}
   # TEST_BE_DATAIMPORTER_USER: ${{ secrets.TEST_BE_DATAIMPORTER_USER }}
   # TEST_BE_DATAIMPORTER_PASS: ${{ secrets.TEST_BE_DATAIMPORTER_PASS }}
   TEST_BE_APPROVER_USER: ${{ secrets.TEST_BE_APPROVER_USER }}
@@ -83,10 +83,8 @@ env:
   BROWSERSTACK_USER: ${{ secrets.TEST_BROWSERSTACK_USER }}
   BROWSERSTACK_KEY: ${{ secrets.TEST_BROWSERSTACK_KEY }}
   # Settings
-  TESTID: ${{ inputs.test_id }}
   NIGHTWATCH_HEADLESS: true
   NIGHTWATCH_OUTPUT: true
-  # PW Settings
 
 
 jobs:
