@@ -39,7 +39,7 @@ on:
       artifact_name:
         description: Name of the report file
         type: string
-        required: true
+        required: false
       state:
         description: Check state to set
         type: string
