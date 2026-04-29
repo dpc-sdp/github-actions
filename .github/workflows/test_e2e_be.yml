@@ -80,11 +80,7 @@ env:
   # Keys
   FTP_JIRA_EMAIL: ${{ secrets.TEST_FTP_JIRA_EMAIL }}
   FTP_JIRA_API_TOKEN: ${{ secrets.TEST_FTP_JIRA_API_TOKEN }}
-  BROWSERSTACK_USER: ${{ secrets.TEST_BROWSERSTACK_USER }}
-  BROWSERSTACK_KEY: ${{ secrets.TEST_BROWSERSTACK_KEY }}
   # Settings
-  NIGHTWATCH_HEADLESS: true
-  NIGHTWATCH_OUTPUT: true
 
 
 jobs:
@@ -117,9 +113,7 @@ jobs:
       -
         name: Run Backend tests
         run: |
-          npm run e2e:backend -- \
-          --workers=5 \
-          --max-failures=10
+          npm run e2e:backend
       - uses: actions/upload-artifact@v6
         if: ${{ !cancelled() }}
         with:
