@@ -39,7 +39,12 @@ on:
           description: SDP testing Docker image tag
           type: string
           required: false
-          default: migration
+          default: ""
+        tags:
+          description: Tags for filtering the tests
+          type: string
+          required: false
+          default: ""
         slack_channel:
           type: string
           required: false
@@ -113,7 +118,7 @@ jobs:
       -
         name: Run Backend tests
         run: |
-          npm run e2e:backend
+          npm run e2e:backend -- -g "${{ inputs.tags }}"
       - uses: actions/upload-artifact@v6
         if: ${{ !cancelled() }}
         with:
