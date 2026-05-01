@@ -58,7 +58,7 @@ on:
         description: When to send the Slack notifications
         type: string
         required: false
-        default: "always"
+        default: "release_only"
 
 env:
   # Test users
