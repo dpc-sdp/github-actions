@@ -78,18 +78,29 @@ on:
 
 env:
   # Test users
-  BE_ADMIN_USER: ${{ secrets.TEST_BE_ADMIN_USER }}
-  BE_ADMIN_PASS: ${{ secrets.TEST_BE_ADMIN_PASS }}
-  BE_APPROVER_USER: ${{ secrets.TEST_BE_APPROVER_USER }}
-  BE_APPROVER_PASS: ${{ secrets.TEST_BE_APPROVER_PASS }}
-  BE_EDITOR_USER: ${{ secrets.TEST_BE_EDITOR_USER }}
-  BE_EDITOR_PASS: ${{ secrets.TEST_BE_EDITOR_PASS }}
-  BE_DATAIMPORTER_USER: ${{ secrets.TEST_BE_DATAIMPORTER_USER }}
-  BE_DATAIMPORTER_PASS: ${{ secrets.TEST_BE_DATAIMPORTER_PASS }}
-  BE_SITE_ADMIN_USER: ${{ secrets.TEST_BE_SITE_ADMIN_USER }}
-  BE_SITE_ADMIN_PASS: ${{ secrets.TEST_BE_SITE_ADMIN_PASS }}
-  BE_CONTRIBUTOR_USER: ${{ secrets.TEST_BE_CONTRIBUTOR_USER }}
-  BE_CONTRIBUTOR_PASS: ${{ secrets.TEST_BE_CONTRIBUTOR_PASS }}
+  # BE_ADMIN_USER: ${{ secrets.TEST_BE_ADMIN_USER }}
+  # BE_ADMIN_PASS: ${{ secrets.TEST_BE_ADMIN_PASS }}
+  # BE_APPROVER_USER: ${{ secrets.TEST_BE_APPROVER_USER }}
+  # BE_APPROVER_PASS: ${{ secrets.TEST_BE_APPROVER_PASS }}
+  # BE_EDITOR_USER: ${{ secrets.TEST_BE_EDITOR_USER }}
+  # BE_EDITOR_PASS: ${{ secrets.TEST_BE_EDITOR_PASS }}
+  # BE_DATAIMPORTER_USER: ${{ secrets.TEST_BE_DATAIMPORTER_USER }}
+  # BE_DATAIMPORTER_PASS: ${{ secrets.TEST_BE_DATAIMPORTER_PASS }}
+  # BE_SITE_ADMIN_USER: ${{ secrets.TEST_BE_SITE_ADMIN_USER }}
+  # BE_SITE_ADMIN_PASS: ${{ secrets.TEST_BE_SITE_ADMIN_PASS }}
+  # BE_CONTRIBUTOR_USER: ${{ secrets.TEST_BE_CONTRIBUTOR_USER }}
+  # BE_CONTRIBUTOR_PASS: ${{ secrets.TEST_BE_CONTRIBUTOR_PASS }}
+  TEST_HTTP_AUTH_USER: ${{ secrets.TEST_HTTP_AUTH_USER }}
+  TEST_HTTP_AUTH_PASS: ${{ secrets.TEST_HTTP_AUTH_PASS }}
+  TEST_BE_ADMIN_USER: ${{ secrets.TEST_BE_ADMIN_USER }}
+  TEST_BE_ADMIN_PASS: ${{ secrets.TEST_BE_ADMIN_PASS }}
+  TEST_BE_EDITOR_USER: ${{ secrets.TEST_BE_EDITOR_USER }}
+  TEST_BE_EDITOR_PASS: ${{ secrets.TEST_BE_EDITOR_PASS }}
+  TEST_BE_APPROVER_USER: ${{ secrets.TEST_BE_APPROVER_USER }}
+  TEST_BE_APPROVER_PASS: ${{ secrets.TEST_BE_APPROVER_PASS }}
+  TEST_BE_PREVIEWER_USER: ${{ secrets.TEST_BE_PREVIEWER_USER }}
+  TEST_BE_PREVIEWER_PASS: ${{ secrets.TEST_BE_PREVIEWER_PASS }}
+  TEST_APPLITOOLS_API_KEY: ${{ secrets.TEST_APPLITOOLS_API_KEY }}
   # Project secrets
   PREMIER_MAILGUN_DEV_TOKEN: ${{ secrets.TEST_PREMIER_MAILGUN_DEV_TOKEN }}
   # Keys
@@ -106,62 +117,52 @@ jobs:
   run_e2e_be:
     name: run_e2e_be
     runs-on: ${{ inputs.runner }}
+    defaults:
+      run:
+        working-directory: /app
     container:
-      image: docker://sdptestautomation/e2e:${{ inputs.tag }}
+      image: ghcr.io/${{ github.repository_owner }}/sdp-testing-playwright:${{ inputs.tag }}
       credentials:
-        username: ${{ secrets.E2E_DOCKERHUB_USERNAME }}
-        password: ${{ secrets.E2E_DOCKERHUB_PASSWORD }}
+        username: ${{ secrets.REGISTRY_USER }}
+        password: ${{ secrets.REGISTRY_TOKEN }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      -
-        name: Check browsers
-        run: |
-          node --version
-          google-chrome --version
-          printenv
       -
         name: Set up Environment variables
         run: |
-          echo 'BE_BASE_URL=${{ inputs.be_url }}' >> $GITHUB_ENV
-          echo 'PROJECT=${{ inputs.project }}' >> $GITHUB_ENV
+          echo 'TEST_BE_BASE_URL=${{ inputs.be_url }}' >> $GITHUB_ENV
+          echo 'TEST_PROJECT=${{ inputs.project }}' >> $GITHUB_ENV
+          echo 'TEST_FE_BASE_URL=https://develop.reference-sdp-vic-gov-au.sdp.delivery' >> $GITHUB_ENV
       -
         name: Check test environment urls
         run: |
-          echo $BE_BASE_URL
-          echo $PROJECT
+          echo $TEST_BE_BASE_URL
+          echo $TEST_PROJECT
       -
         name: "Wait up servers in case they are idle"
         run: |
-          curl ${BE_BASE_URL} -s -S --max-time 1000 --write-out '%{http_code}' --output /dev/null;
-      -
-        name: Install chrome driver
-        run: /app/node_modules/selenium-webdriver/bin/linux/selenium-manager --browser chrome
-        shell: bash
+          curl ${TEST_BE_BASE_URL} -s -S --max-time 1000 --write-out '%{http_code}' --output /dev/null;
       -
         name: Run Backend tests
         run: |
-          cd /app
-          Xvfb :99 -screen 0 1920x1080x24 &
-          NIGHTWATCH_BROWSER="${{ inputs.browser }}" npm run cucumber:${{ inputs.app }} -- --tags "${{ inputs.tags }}" --retry "${{ inputs.retry }}" --parallel "${{ inputs.parallel }}"
-      -
-        name: Report test results
-        if: always()
-        uses: dpc-sdp/github-actions/.github/actions/test-report@main
+          npm run e2e:backend
+      - uses: actions/upload-artifact@v6
+        if: ${{ !cancelled() }}
         with:
-          report_name: 'test-reports-${{ inputs.name }}'
-      - 
-        name: 'Add failed test result status to CMS'
-        if: inputs.test_status && failure()
-        run: |
-          cd /app
-          TEST_STATUS=fail node -r ts-node/register -r tsconfig-paths/register scripts/addTestResult.ts
-      - 
-        name: 'Add succeeded test result status to CMS'
-        if: inputs.test_status && success()
-        run: |
-          cd /app
-          TEST_STATUS=pass node -r ts-node/register -r tsconfig-paths/register scripts/addTestResult.ts
+          name: playwright-report-backend
+          path: /app/playwright-report/
+          retention-days: 30
+      - name: Publish Test Report (summary-report)
+        uses: ctrf-io/github-test-reporter@v1
+        with:
+          report-path: '/app/ctrf/*.json'
+          summary-report: true
+        if: always()
+      - name: Publish Test Report (file-report)
+        uses: ctrf-io/github-test-reporter@v1
+        with:
+          report-path: '/app/ctrf/*.json'
+          file-report: true
+        if: always()
   notify_slack:
     uses: ./.github/workflows/notify_slack.yml
     if: |
