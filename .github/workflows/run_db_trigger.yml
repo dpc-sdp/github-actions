@@ -87,6 +87,10 @@ jobs:
         run: docker exec "${{ steps.container.outputs.id }}" bash -c "chown -R mysql /var/lib/mysql && /bin/fix-permissions /var/lib/mysql" || true
         continue-on-error: true
 
+      - name: Gracefully shutdown the intermediary container
+        run: docker exec -i "${{ steps.container.outputs.id }}" mysqladmin -u root -p${{ secrets.DB_IMAGE_MARIADB_ROOT_PASSWORD }} shutdown
+        continue-on-error: true
+
       - name: Copy database files out of the intemediary container
         run: |
           mkdir -p "${{ env.TMP_DATA_DIR }}"
@@ -101,10 +105,6 @@ jobs:
             ls -la "${{ env.TMP_DATA_DIR }}"
             exit 1
           fi
-
-      - name: Gracefully shutdown the intermediary container
-        run: docker exec -i "${{ steps.container.outputs.id }}" mysqladmin -u root -p${{ secrets.DB_IMAGE_MARIADB_ROOT_PASSWORD }} shutdown
-        continue-on-error: true
 
       - name: Download the DB image dockerfile
         run: curl -o Dockerfile.seed https://raw.githubusercontent.com/dpc-sdp/github-actions/main/.docker/Dockerfile.seed
