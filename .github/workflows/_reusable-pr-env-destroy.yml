@@ -1,0 +1,186 @@
+name: _reusable-pr-env-destroy
+
+on:
+  workflow_call:
+    inputs:
+      slipway-workspace-slug:
+        required: true
+        type: string
+      slipway-project-slug:
+        required: true
+        type: string
+      slipway-api-base-url:
+        required: true
+        type: string
+      pr-number:
+        required: true
+        type: number
+
+concurrency:
+  group: pr-env-${{ inputs.pr-number }}
+  cancel-in-progress: false
+
+jobs:
+  destroy:
+    name: destroy
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Setup Slipway CLI
+        uses: service-victoria/slipway-clients/setup-slipway@main
+        with:
+          api-base-url: ${{ inputs.slipway-api-base-url }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Lookup environment id
+        id: lookup
+        env:
+          WORKSPACE: ${{ inputs.slipway-workspace-slug }}
+          PROJECT: ${{ inputs.slipway-project-slug }}
+          PR_NUMBER: ${{ inputs.pr-number }}
+        run: |
+          set -euo pipefail
+          slug="pr-${PR_NUMBER}"
+          env_id=$(slipway environments list \
+            --workspace-slug "$WORKSPACE" \
+            --project-slug "$PROJECT" \
+            --output-format json \
+            | jq -r --arg slug "$slug" '.items[] | select(.slug == $slug) | .id')
+
+          if [[ -z "$env_id" ]]; then
+            echo "No environment found with slug '${slug}' — nothing to destroy"
+            echo "env-id=" >> "$GITHUB_OUTPUT"
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "env-id=${env_id}" >> "$GITHUB_OUTPUT"
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Teardown environment (with retry/backoff)
+        if: steps.lookup.outputs.exists == 'true'
+        env:
+          WORKSPACE: ${{ inputs.slipway-workspace-slug }}
+          PROJECT: ${{ inputs.slipway-project-slug }}
+          ENV_ID: ${{ steps.lookup.outputs.env-id }}
+        run: |
+          set -euo pipefail
+          delays=(15 30 60 120 240)
+          attempt=0
+          max_attempts=${#delays[@]}
+
+          while (( attempt < max_attempts )); do
+            attempt=$((attempt + 1))
+            echo "::group::Teardown attempt ${attempt}/${max_attempts}"
+
+            set +e
+            output=$(slipway environments teardown \
+              --workspace-slug "$WORKSPACE" \
+              --project-slug "$PROJECT" \
+              --id "$ENV_ID" \
+              --refresh-teardown-pipeline 2>&1)
+            ec=$?
+            set -e
+
+            echo "$output"
+            echo "::endgroup::"
+
+            if (( ec == 0 )); then
+              echo "Teardown succeeded"
+              exit 0
+            fi
+
+            # 404 -> already gone, treat as success
+            if echo "$output" | grep -qiE '404|not[ _-]?found'; then
+              echo "Environment already absent (404), treating as success"
+              exit 0
+            fi
+
+            # 409 / in-use / deploy in progress -> retryable
+            if echo "$output" | grep -qiE '409|in[ _-]?use|deploy[ _-]?in[ _-]?progress|conflict'; then
+              if (( attempt < max_attempts )); then
+                delay=${delays[$((attempt - 1))]}
+                echo "Conflict — sleeping ${delay}s before retry"
+                sleep "$delay"
+                continue
+              fi
+            fi
+
+            echo "::error::Teardown failed (exit ${ec}) and error is not retryable"
+            exit "$ec"
+          done
+
+          echo "::error::Teardown failed after ${max_attempts} attempts"
+          exit 1
+
+      - name: Delete environment (with retry/backoff)
+        if: steps.lookup.outputs.exists == 'true'
+        env:
+          WORKSPACE: ${{ inputs.slipway-workspace-slug }}
+          PROJECT: ${{ inputs.slipway-project-slug }}
+          ENV_ID: ${{ steps.lookup.outputs.env-id }}
+        run: |
+          set -euo pipefail
+          delays=(15 30 60 120 240)
+          attempt=0
+          max_attempts=${#delays[@]}
+
+          while (( attempt < max_attempts )); do
+            attempt=$((attempt + 1))
+            echo "::group::Delete attempt ${attempt}/${max_attempts}"
+
+            set +e
+            output=$(slipway environments delete \
+              --workspace-slug "$WORKSPACE" \
+              --project-slug "$PROJECT" \
+              --id "$ENV_ID" 2>&1)
+            ec=$?
+            set -e
+
+            echo "$output"
+            echo "::endgroup::"
+
+            if (( ec == 0 )); then
+              echo "Delete succeeded"
+              exit 0
+            fi
+
+            if echo "$output" | grep -qiE '404|not[ _-]?found'; then
+              echo "Environment already absent (404), treating as success"
+              exit 0
+            fi
+
+            if echo "$output" | grep -qiE '409|in[ _-]?use|conflict'; then
+              if (( attempt < max_attempts )); then
+                delay=${delays[$((attempt - 1))]}
+                echo "Conflict — sleeping ${delay}s before retry"
+                sleep "$delay"
+                continue
+              fi
+            fi
+
+            echo "::error::Delete failed (exit ${ec}) and error is not retryable"
+            exit "$ec"
+          done
+
+          echo "::error::Delete failed after ${max_attempts} attempts"
+          exit 1
+
+      - name: Summary
+        if: always()
+        env:
+          PR_NUMBER: ${{ inputs.pr-number }}
+          ENV_ID: ${{ steps.lookup.outputs.env-id }}
+          EXISTS: ${{ steps.lookup.outputs.exists }}
+        run: |
+          {
+            echo "### PR environment destroy"
+            echo ""
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| PR number | ${PR_NUMBER} |"
+            echo "| Environment slug | \`pr-${PR_NUMBER}\` |"
+            echo "| Existed | \`${EXISTS}\` |"
+            echo "| Environment id | \`${ENV_ID:-<n/a>}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"

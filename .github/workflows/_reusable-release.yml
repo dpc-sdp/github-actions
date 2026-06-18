@@ -1,0 +1,146 @@
+name: _reusable-release
+
+on:
+  workflow_call:
+    inputs:
+      slipway-workspace-slug:
+        required: true
+        type: string
+      slipway-project-slug:
+        required: true
+        type: string
+      slipway-api-base-url:
+        required: true
+        type: string
+      ecr-registry:
+        required: true
+        type: string
+      ecr-repository-path:
+        required: true
+        type: string
+      ecr-push-role-arn:
+        required: true
+        type: string
+      aws-region:
+        required: false
+        type: string
+        default: ap-southeast-4
+      paketo-builder:
+        required: false
+        type: string
+        default: paketobuildpacks/ubuntu-noble-builder
+      platform:
+        required: false
+        type: string
+        default: linux/arm64
+      runs-on:
+        required: false
+        type: string
+        default: ubuntu-24.04-arm
+    outputs:
+      release-created:
+        description: Whether release-please created a release on this run
+        value: ${{ jobs.release-please.outputs.release-created }}
+      version:
+        description: Released version (only set when release-created == true)
+        value: ${{ jobs.release-please.outputs.version }}
+      tag-name:
+        description: Git tag created by release-please (e.g. v1.2.3)
+        value: ${{ jobs.release-please.outputs.tag-name }}
+      image-uri:
+        description: Versioned image URI pushed to ECR
+        value: ${{ jobs.image-build.outputs.image-uri }}
+      image-digest:
+        description: ECR image digest
+        value: ${{ jobs.image-build.outputs.image-digest }}
+      release-id:
+        description: Slipway release id (FINAL, release path only)
+        value: ${{ jobs.slipway-release.outputs.release-id }}
+      prerelease-image-uri:
+        description: Mutable image URI from the prerelease build path
+        value: ${{ jobs.prerelease-build.outputs.image-uri }}
+      prerelease-immutable-image-uri:
+        description: Immutable image URI from the prerelease build path
+        value: ${{ jobs.prerelease-build.outputs.immutable-image-uri }}
+
+jobs:
+  release-please:
+    name: release-please
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release-created: ${{ steps.release.outputs.release_created }}
+      version: ${{ steps.release.outputs.version }}
+      tag-name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - id: release
+        uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  image-build:
+    name: image-build
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release-created == 'true' }}
+    uses: ./.github/workflows/_reusable-image-build.yml
+    secrets: inherit
+    permissions:
+      id-token: write
+      contents: read
+    with:
+      primary-tag: ${{ needs.release-please.outputs.version }}
+      additional-tags: latest
+      probe-tag: ${{ needs.release-please.outputs.version }}
+      bp-oci-version: ${{ needs.release-please.outputs.version }}
+      ref: ${{ needs.release-please.outputs.tag-name }}
+      ecr-registry: ${{ inputs.ecr-registry }}
+      ecr-repository-path: ${{ inputs.ecr-repository-path }}
+      ecr-push-role-arn: ${{ inputs.ecr-push-role-arn }}
+      aws-region: ${{ inputs.aws-region }}
+      paketo-builder: ${{ inputs.paketo-builder }}
+      platform: ${{ inputs.platform }}
+      runs-on: ${{ inputs.runs-on }}
+
+  slipway-release:
+    name: slipway-release
+    needs: [release-please, image-build]
+    if: ${{ needs.release-please.outputs.release-created == 'true' }}
+    uses: ./.github/workflows/_reusable-slipway-release.yml
+    secrets: inherit
+    with:
+      slipway-workspace-slug: ${{ inputs.slipway-workspace-slug }}
+      slipway-project-slug: ${{ inputs.slipway-project-slug }}
+      slipway-api-base-url: ${{ inputs.slipway-api-base-url }}
+      version: ${{ needs.release-please.outputs.version }}
+      image-uri: ${{ needs.image-build.outputs.image-uri }}
+      image-digest: ${{ needs.image-build.outputs.image-digest }}
+      ref: ${{ needs.release-please.outputs.tag-name }}
+
+  # When release-please did NOT cut a release on this commit, fall through to
+  # the standard build-push flow so every commit on the release branch still
+  # produces a published image (mutable `branch-<ref>` + immutable
+  # `v<version>-branch-<ref>.<sha>`).
+  prerelease-build:
+    name: prerelease-build
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release-created != 'true' }}
+    uses: ./.github/workflows/_reusable-build-push.yml
+    secrets: inherit
+    permissions:
+      id-token: write
+      contents: read
+    with:
+      slipway-workspace-slug: ${{ inputs.slipway-workspace-slug }}
+      slipway-project-slug: ${{ inputs.slipway-project-slug }}
+      slipway-api-base-url: ${{ inputs.slipway-api-base-url }}
+      ecr-registry: ${{ inputs.ecr-registry }}
+      ecr-repository-path: ${{ inputs.ecr-repository-path }}
+      ecr-push-role-arn: ${{ inputs.ecr-push-role-arn }}
+      aws-region: ${{ inputs.aws-region }}
+      paketo-builder: ${{ inputs.paketo-builder }}
+      platform: ${{ inputs.platform }}
+      runs-on: ${{ inputs.runs-on }}

@@ -1,0 +1,179 @@
+name: _reusable-pr-env-reconcile
+
+on:
+  workflow_call:
+    inputs:
+      slipway-workspace-slug:
+        required: true
+        type: string
+      slipway-project-slug:
+        required: true
+        type: string
+      slipway-api-base-url:
+        required: true
+        type: string
+      dry-run:
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  reconcile:
+    name: reconcile
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      pull-requests: read
+      contents: read
+    steps:
+      - name: Setup Slipway CLI
+        uses: service-victoria/slipway-clients/setup-slipway@main
+        with:
+          api-base-url: ${{ inputs.slipway-api-base-url }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: List open PR numbers
+        id: open-prs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          numbers=$(gh pr list \
+            --repo "$REPO" \
+            --state open \
+            --limit 500 \
+            --json number \
+            --jq '[.[].number] | map(tostring) | join(" ")')
+          echo "numbers=${numbers}" >> "$GITHUB_OUTPUT"
+          echo "Found open PRs: ${numbers:-<none>}"
+
+      - name: Reconcile orphaned environments
+        env:
+          WORKSPACE: ${{ inputs.slipway-workspace-slug }}
+          PROJECT: ${{ inputs.slipway-project-slug }}
+          DRY_RUN: ${{ inputs.dry-run }}
+          OPEN_PRS: ${{ steps.open-prs.outputs.numbers }}
+        run: |
+          set -euo pipefail
+
+          # Retry helper: call a slipway command with exponential backoff.
+          # Treats 404 as success; 409 / in-use / conflict as retryable.
+          # Args: <description> <cmd...>
+          retry_slipway() {
+            local desc="$1"; shift
+            local delays=(15 30 60 120 240)
+            local max=${#delays[@]}
+            local attempt=0
+            while (( attempt < max )); do
+              attempt=$((attempt + 1))
+              echo "  ${desc} — attempt ${attempt}/${max}"
+              local out
+              local ec=0
+              out=$("$@" 2>&1) || ec=$?
+              if (( ec == 0 )); then
+                return 0
+              fi
+              if echo "$out" | grep -qiE '404|not[ _-]?found'; then
+                echo "  ${desc} — 404 (already gone), treating as success"
+                return 0
+              fi
+              if echo "$out" | grep -qiE '409|in[ _-]?use|deploy[ _-]?in[ _-]?progress|conflict' && (( attempt < max )); then
+                local delay=${delays[$((attempt - 1))]}
+                echo "  ${desc} — conflict, sleeping ${delay}s"
+                sleep "$delay"
+                continue
+              fi
+              echo "  ${desc} — failed (exit ${ec})"
+              echo "$out" | sed 's/^/    /'
+              return "$ec"
+            done
+            echo "  ${desc} — exhausted ${max} attempts"
+            return 1
+          }
+
+          declare -A open_set
+          for n in $OPEN_PRS; do
+            open_set[$n]=1
+          done
+
+          envs_json=$(slipway environments list \
+            --workspace-slug "$WORKSPACE" \
+            --project-slug "$PROJECT" \
+            --output-format json)
+
+          # Filter to EPHEMERAL envs with pr-<n> slugs
+          candidates=$(echo "$envs_json" | jq -c '.items[] | select(.type == "EPHEMERAL" and (.slug | test("^pr-[0-9]+$"))) | {id, slug}')
+
+          if [[ -z "$candidates" ]]; then
+            echo "No EPHEMERAL pr-* environments found"
+            {
+              echo "### PR environment reconcile"
+              echo ""
+              echo "No EPHEMERAL \`pr-*\` environments present in workspace \`${WORKSPACE}\` / project \`${PROJECT}\`."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          rows=""
+          any_failure=false
+
+          while IFS= read -r row; do
+            env_id=$(echo "$row" | jq -r '.id')
+            env_slug=$(echo "$row" | jq -r '.slug')
+            pr_number="${env_slug#pr-}"
+
+            if [[ -n "${open_set[$pr_number]:-}" ]]; then
+              echo "Env ${env_slug} (${env_id}) — PR #${pr_number} still open, skipping"
+              rows+="| \`${env_slug}\` | \`${env_id}\` | open — skipped |\n"
+              continue
+            fi
+
+            if [[ "$DRY_RUN" == "true" ]]; then
+              echo "Env ${env_slug} (${env_id}) — orphaned, would delete (dry-run)"
+              rows+="| \`${env_slug}\` | \`${env_id}\` | dry-run — would delete |\n"
+              continue
+            fi
+
+            echo "::group::Reconcile ${env_slug} (${env_id})"
+            disposition="deleted"
+            failed=false
+
+            if ! retry_slipway "teardown ${env_slug}" \
+                slipway environments teardown \
+                  --workspace-slug "$WORKSPACE" \
+                  --project-slug "$PROJECT" \
+                  --id "$env_id" \
+                  --refresh-teardown-pipeline; then
+              failed=true
+            fi
+
+            if [[ "$failed" == "false" ]] && ! retry_slipway "delete ${env_slug}" \
+                slipway environments delete \
+                  --workspace-slug "$WORKSPACE" \
+                  --project-slug "$PROJECT" \
+                  --id "$env_id"; then
+              failed=true
+            fi
+
+            if [[ "$failed" == "true" ]]; then
+              any_failure=true
+              disposition="FAILED"
+            fi
+
+            echo "::endgroup::"
+            rows+="| \`${env_slug}\` | \`${env_id}\` | ${disposition} |\n"
+          done <<< "$candidates"
+
+          {
+            echo "### PR environment reconcile"
+            echo ""
+            echo "| Slug | Id | Disposition |"
+            echo "|---|---|---|"
+            printf "%b" "$rows"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [[ "$any_failure" == "true" ]]; then
+            echo "::error::One or more environments failed to reconcile"
+            exit 1
+          fi

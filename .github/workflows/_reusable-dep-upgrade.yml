@@ -1,0 +1,240 @@
+name: _reusable-dep-upgrade
+
+on:
+  workflow_call:
+    inputs:
+      target-ripple-version:
+        required: false
+        type: string
+        default: ''
+      target-sdp-version:
+        required: false
+        type: string
+        default: ''
+      target-projen-config-version:
+        required: false
+        type: string
+        default: ''
+      auto-merge:
+        required: false
+        type: boolean
+        default: true
+      branch-prefix:
+        required: false
+        type: string
+        default: chore/dep-upgrade
+
+jobs:
+  upgrade:
+    name: upgrade
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          always-auth: true
+          registry-url: https://npm.pkg.github.com/
+          scope: '@dpc-sdp'
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Compute branch name
+        id: branch
+        env:
+          BRANCH_PREFIX: ${{ inputs.branch-prefix }}
+        run: |
+          set -euo pipefail
+          today=$(date +%Y-%m-%d)
+          short_sha="${GITHUB_SHA:0:7}"
+          branch="${BRANCH_PREFIX}/${today}-${short_sha}"
+          echo "name=${branch}" >> "$GITHUB_OUTPUT"
+
+      - name: Create branch
+        env:
+          BRANCH: ${{ steps.branch.outputs.name }}
+        run: |
+          set -euo pipefail
+          git checkout -b "$BRANCH"
+
+      - name: Apply Ripple / SDP version updates to .projenrc.ts
+        env:
+          RIPPLE_VERSION: ${{ inputs.target-ripple-version }}
+          SDP_VERSION: ${{ inputs.target-sdp-version }}
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const path = '.projenrc.ts';
+          let src = fs.readFileSync(path, 'utf8');
+          const changes = [];
+
+          const ripple = process.env.RIPPLE_VERSION;
+          if (ripple) {
+            const re = /(rippleVersion:\s*['"])([^'"]+)(['"])/;
+            if (re.test(src)) {
+              src = src.replace(re, `$1${ripple}$3`);
+              changes.push(`rippleVersion -> ${ripple}`);
+            } else {
+              console.error('Could not find rippleVersion in .projenrc.ts');
+              process.exit(1);
+            }
+          }
+
+          const sdp = process.env.SDP_VERSION;
+          if (sdp) {
+            const re = /(sdpVersion:\s*['"])([^'"]+)(['"])/;
+            if (re.test(src)) {
+              src = src.replace(re, `$1${sdp}$3`);
+              changes.push(`sdpVersion -> ${sdp}`);
+            } else {
+              console.error('Could not find sdpVersion in .projenrc.ts');
+              process.exit(1);
+            }
+          }
+
+          fs.writeFileSync(path, src);
+          console.log('Applied changes: ' + (changes.join(', ') || '<none>'));
+          NODE
+
+      - name: Upgrade projen config package
+        if: inputs.target-projen-config-version != ''
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GPR_NPM_INSTALL_TOKEN }}
+          PROJEN_CONFIG_VERSION: ${{ inputs.target-projen-config-version }}
+        run: |
+          set -euo pipefail
+          npm install --save-dev "@dpc-sdp/ripple-sdp-projen-config@${PROJEN_CONFIG_VERSION}"
+
+      - name: Regenerate projen files
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GPR_NPM_INSTALL_TOKEN }}
+        run: |
+          set -euo pipefail
+          npx projen
+
+      - name: Refresh lockfile and build
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GPR_NPM_INSTALL_TOKEN }}
+        run: |
+          set -euo pipefail
+          npm install
+          npm run build
+
+      - name: Detect changes
+        id: diff
+        run: |
+          set -euo pipefail
+          git add -A
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No changes after upgrade — nothing to PR"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          BRANCH: ${{ steps.branch.outputs.name }}
+          RIPPLE_VERSION: ${{ inputs.target-ripple-version }}
+          SDP_VERSION: ${{ inputs.target-sdp-version }}
+          PROJEN_CONFIG_VERSION: ${{ inputs.target-projen-config-version }}
+        run: |
+          set -euo pipefail
+          parts=()
+          [[ -n "$RIPPLE_VERSION" ]] && parts+=("Ripple to ${RIPPLE_VERSION}")
+          [[ -n "$SDP_VERSION" ]] && parts+=("SDP to ${SDP_VERSION}")
+          [[ -n "$PROJEN_CONFIG_VERSION" ]] && parts+=("projen-config to ${PROJEN_CONFIG_VERSION}")
+          if (( ${#parts[@]} == 0 )); then
+            subject="chore(deps): upgrade dependencies"
+          else
+            subject="chore(deps): upgrade $(IFS=' / '; echo "${parts[*]}")"
+          fi
+          git commit -m "$subject"
+          git push origin "$BRANCH"
+          echo "commit-subject=${subject}" >> "$GITHUB_OUTPUT"
+
+      - name: Open pull request
+        id: pr
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ steps.branch.outputs.name }}
+          RIPPLE_VERSION: ${{ inputs.target-ripple-version }}
+          SDP_VERSION: ${{ inputs.target-sdp-version }}
+          PROJEN_CONFIG_VERSION: ${{ inputs.target-projen-config-version }}
+        run: |
+          set -euo pipefail
+          {
+            echo "Automated dependency upgrade."
+            echo ""
+            [[ -n "$RIPPLE_VERSION" ]] && echo "- Ripple: \`${RIPPLE_VERSION}\`"
+            [[ -n "$SDP_VERSION" ]] && echo "- SDP: \`${SDP_VERSION}\`"
+            [[ -n "$PROJEN_CONFIG_VERSION" ]] && echo "- projen-config: \`${PROJEN_CONFIG_VERSION}\`"
+          } > /tmp/pr-body.md
+
+          parts=()
+          [[ -n "$RIPPLE_VERSION" ]] && parts+=("Ripple to ${RIPPLE_VERSION}")
+          [[ -n "$SDP_VERSION" ]] && parts+=("SDP to ${SDP_VERSION}")
+          [[ -n "$PROJEN_CONFIG_VERSION" ]] && parts+=("projen-config to ${PROJEN_CONFIG_VERSION}")
+          if (( ${#parts[@]} == 0 )); then
+            title="chore(deps): upgrade dependencies"
+          else
+            title="chore(deps): upgrade $(IFS=' / '; echo "${parts[*]}")"
+          fi
+
+          pr_url=$(gh pr create \
+            --title "$title" \
+            --body-file /tmp/pr-body.md \
+            --base "${GITHUB_REF_NAME}" \
+            --head "$BRANCH")
+
+          echo "pr-url=${pr_url}" >> "$GITHUB_OUTPUT"
+
+      - name: Enable auto-merge
+        if: steps.diff.outputs.changed == 'true' && inputs.auto-merge == true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ steps.pr.outputs.pr-url }}
+        run: |
+          set -euo pipefail
+          gh pr merge --squash --auto "$PR_URL"
+
+      - name: Summary
+        if: always()
+        env:
+          CHANGED: ${{ steps.diff.outputs.changed }}
+          PR_URL: ${{ steps.pr.outputs.pr-url }}
+          BRANCH: ${{ steps.branch.outputs.name }}
+          AUTO_MERGE: ${{ inputs.auto-merge }}
+          RIPPLE_VERSION: ${{ inputs.target-ripple-version }}
+          SDP_VERSION: ${{ inputs.target-sdp-version }}
+          PROJEN_CONFIG_VERSION: ${{ inputs.target-projen-config-version }}
+        run: |
+          {
+            echo "### Dependency upgrade"
+            echo ""
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| Branch | \`${BRANCH}\` |"
+            echo "| Ripple target | \`${RIPPLE_VERSION:-<unchanged>}\` |"
+            echo "| SDP target | \`${SDP_VERSION:-<unchanged>}\` |"
+            echo "| projen-config target | \`${PROJEN_CONFIG_VERSION:-<unchanged>}\` |"
+            echo "| Changes detected | \`${CHANGED:-false}\` |"
+            echo "| Auto-merge | \`${AUTO_MERGE}\` |"
+            echo "| PR | ${PR_URL:-<none>} |"
+          } >> "$GITHUB_STEP_SUMMARY"

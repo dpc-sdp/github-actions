@@ -1,0 +1,305 @@
+name: _reusable-image-build
+
+on:
+  workflow_call:
+    inputs:
+      primary-tag:
+        description: Primary ECR tag the image is pushed to (becomes the resolved image-uri output).
+        required: true
+        type: string
+      additional-tags:
+        description: |
+          Extra ECR tags, one per line. Bare tags are qualified against the configured ECR repo;
+          fully-qualified URIs (host/repo:tag) are passed through unchanged.
+        required: false
+        type: string
+        default: ''
+      probe-tag:
+        description: |
+          Optional ECR tag to probe before building. If the tag already exists in ECR, the build
+          is skipped and the existing digest flows through as the image-digest output. Use an
+          immutable, per-content tag (e.g. the immutable version tag) so reruns are idempotent.
+        required: false
+        type: string
+        default: ''
+      bp-oci-version:
+        description: Optional version label set via BP_OCI_VERSION (Paketo image-labels buildpack).
+        required: false
+        type: string
+        default: ''
+      ref:
+        description: Optional git ref to checkout for the build (defaults to the calling workflow's ref).
+        required: false
+        type: string
+        default: ''
+      ecr-registry:
+        required: true
+        type: string
+      ecr-repository-path:
+        required: true
+        type: string
+      ecr-push-role-arn:
+        required: true
+        type: string
+      aws-region:
+        required: false
+        type: string
+        default: ap-southeast-4
+      paketo-builder:
+        required: false
+        type: string
+        default: paketobuildpacks/ubuntu-noble-builder
+      platform:
+        required: false
+        type: string
+        default: linux/arm64
+      runs-on:
+        required: false
+        type: string
+        default: ubuntu-24.04-arm
+    outputs:
+      image-uri:
+        description: Image URI corresponding to primary-tag (always set).
+        value: ${{ jobs.probe.outputs.image-uri }}
+      image-digest:
+        description: ECR image digest of the built or pre-existing image.
+        value: ${{ jobs.build.outputs.image-digest || jobs.probe.outputs.existing-digest }}
+      skipped:
+        description: '"true" when the build was skipped because probe-tag already existed.'
+        value: ${{ jobs.probe.outputs.skip }}
+
+jobs:
+  probe:
+    name: probe
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      id-token: write
+      contents: read
+    outputs:
+      skip: ${{ steps.check.outputs.skip }}
+      existing-digest: ${{ steps.check.outputs.existing-digest }}
+      image-uri: ${{ steps.uri.outputs.image-uri }}
+    steps:
+      - id: uri
+        name: Compute primary image URI
+        env:
+          ECR_REGISTRY: ${{ inputs.ecr-registry }}
+          ECR_REPOSITORY_PATH: ${{ inputs.ecr-repository-path }}
+          PRIMARY_TAG: ${{ inputs.primary-tag }}
+        run: |
+          set -euo pipefail
+          echo "image-uri=${ECR_REGISTRY}/${ECR_REPOSITORY_PATH}:${PRIMARY_TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Configure AWS credentials
+        if: inputs.probe-tag != ''
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ inputs.ecr-push-role-arn }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - id: check
+        name: Probe ECR for existing image
+        env:
+          ECR_REPOSITORY_PATH: ${{ inputs.ecr-repository-path }}
+          PROBE_TAG: ${{ inputs.probe-tag }}
+        run: |
+          set -euo pipefail
+          skip=false
+          existing_digest=""
+
+          if [[ -n "$PROBE_TAG" ]]; then
+            set +e
+            describe=$(aws ecr describe-images \
+              --repository-name "$ECR_REPOSITORY_PATH" \
+              --image-ids imageTag="$PROBE_TAG" \
+              --output json 2>/dev/null)
+            ec=$?
+            set -e
+            if [[ $ec -eq 0 ]]; then
+              existing_digest=$(echo "$describe" | jq -r '.imageDetails[0].imageDigest // ""')
+              skip=true
+              echo "Probe tag ${PROBE_TAG} already exists (${existing_digest}); skipping build"
+            else
+              echo "No existing image at ${PROBE_TAG}; build will proceed"
+            fi
+          fi
+
+          {
+            echo "skip=${skip}"
+            echo "existing-digest=${existing_digest}"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### Image probe"
+            echo ""
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| Probe tag | \`${PROBE_TAG:-<none>}\` |"
+            echo "| Skip build | \`${skip}\` |"
+            echo "| Existing digest | \`${existing_digest:-<none>}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  build:
+    name: build
+    needs: probe
+    if: needs.probe.outputs.skip != 'true'
+    runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: 30
+    permissions:
+      id-token: write
+      contents: read
+    outputs:
+      image-digest: ${{ steps.push.outputs.image-digest }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Pre-flight — verify GPR token present
+        env:
+          GPR_NPM_INSTALL_TOKEN: ${{ secrets.GPR_NPM_INSTALL_TOKEN }}
+        run: |
+          if [[ -z "${GPR_NPM_INSTALL_TOKEN}" ]]; then
+            echo "::error::Secret GPR_NPM_INSTALL_TOKEN is required but not set"
+            exit 1
+          fi
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ inputs.ecr-push-role-arn }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Setup pack CLI
+        uses: buildpacks/github-actions/setup-pack@v5.12.4
+
+      - name: Restore buildpack build cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/pack-cache/build
+          key: pack-build-${{ runner.os }}-${{ inputs.platform }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            pack-build-${{ runner.os }}-${{ inputs.platform }}-
+
+      - name: Prepare buildpack cache dir
+        id: pack-cache
+        run: |
+          set -euo pipefail
+          cache_dir="${RUNNER_TEMP}/pack-cache/build"
+          mkdir -p "$cache_dir"
+          # Paketo buildpacks run as uid 1000 (cnb); GH runners are uid 1001.
+          sudo chown -R 1000:1000 "${RUNNER_TEMP}/pack-cache"
+          echo "path=${cache_dir}" >> "$GITHUB_OUTPUT"
+
+      - name: Write npm service binding
+        id: binding
+        env:
+          GPR_NPM_INSTALL_TOKEN: ${{ secrets.GPR_NPM_INSTALL_TOKEN }}
+        run: |
+          set -euo pipefail
+          binding_dir="${RUNNER_TEMP}/npm-binding"
+          mkdir -p "$binding_dir"
+          printf 'npmrc' > "$binding_dir/type"
+          printf '//npm.pkg.github.com/:_authToken=%s\n' "$GPR_NPM_INSTALL_TOKEN" > "$binding_dir/.npmrc"
+          chmod 600 "$binding_dir/.npmrc"
+          echo "path=${binding_dir}" >> "$GITHUB_OUTPUT"
+
+      - name: Write buildpack descriptor
+        id: descriptor
+        run: |
+          set -euo pipefail
+          descriptor="${RUNNER_TEMP}/project.toml"
+          cat > "$descriptor" <<'EOF'
+          [_]
+          schema-version = "0.2"
+
+          [io.buildpacks]
+          exclude = [
+            "node_modules"
+          ]
+          EOF
+          echo "path=${descriptor}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push image
+        id: push
+        env:
+          IMAGE_URI: ${{ needs.probe.outputs.image-uri }}
+          ADDITIONAL_TAGS: ${{ inputs.additional-tags }}
+          BP_OCI_VERSION_INPUT: ${{ inputs.bp-oci-version }}
+          BUILDER: ${{ inputs.paketo-builder }}
+          PLATFORM: ${{ inputs.platform }}
+          DESCRIPTOR: ${{ steps.descriptor.outputs.path }}
+          BINDING_DIR: ${{ steps.binding.outputs.path }}
+          PACK_CACHE_DIR: ${{ steps.pack-cache.outputs.path }}
+          ECR_REGISTRY: ${{ inputs.ecr-registry }}
+          ECR_REPOSITORY_PATH: ${{ inputs.ecr-repository-path }}
+          PRIMARY_TAG: ${{ inputs.primary-tag }}
+          GIT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          # Build the --tag list from the newline-separated additional-tags input.
+          # Bare tag names are qualified against the configured ECR repo; fully
+          # qualified URIs (containing '/' and ':') are passed through verbatim.
+          extra_tag_args=()
+          summary_extra_uris=()
+          while IFS= read -r tag; do
+            tag="${tag## }"; tag="${tag%% }"
+            [[ -z "$tag" ]] && continue
+            if [[ "$tag" == *"/"*":"* ]]; then
+              qualified="$tag"
+            else
+              qualified="${ECR_REGISTRY}/${ECR_REPOSITORY_PATH}:${tag}"
+            fi
+            extra_tag_args+=(--tag "$qualified")
+            summary_extra_uris+=("$qualified")
+          done <<< "$ADDITIONAL_TAGS"
+
+          extra_env_args=()
+          if [[ -n "$BP_OCI_VERSION_INPUT" ]]; then
+            extra_env_args+=(--env "BP_OCI_VERSION=${BP_OCI_VERSION_INPUT}")
+          fi
+
+          start_ts=$(date +%s)
+
+          pack build "$IMAGE_URI" \
+            ${extra_tag_args[@]+"${extra_tag_args[@]}"} \
+            --builder "$BUILDER" \
+            --platform "$PLATFORM" \
+            --volume "${BINDING_DIR}:/platform/bindings/npm-binding:ro" \
+            --descriptor "$DESCRIPTOR" \
+            --cache "type=build;format=bind;source=${PACK_CACHE_DIR}" \
+            --env "BP_OCI_REVISION=${GIT_SHA}" \
+            --env "BP_OCI_SOURCE=https://github.com/${GITHUB_REPOSITORY}" \
+            ${extra_env_args[@]+"${extra_env_args[@]}"} \
+            --publish
+
+          end_ts=$(date +%s)
+          duration=$((end_ts - start_ts))
+
+          digest=$(aws ecr describe-images \
+            --repository-name "$ECR_REPOSITORY_PATH" \
+            --image-ids imageTag="$PRIMARY_TAG" \
+            --query 'imageDetails[0].imageDigest' \
+            --output text)
+
+          echo "image-digest=${digest}" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### Image build"
+            echo ""
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| Primary URI | \`${IMAGE_URI}\` |"
+            for uri in ${summary_extra_uris[@]+"${summary_extra_uris[@]}"}; do
+              echo "| Additional URI | \`${uri}\` |"
+            done
+            echo "| Digest | \`${digest}\` |"
+            echo "| Platform | \`${PLATFORM}\` |"
+            echo "| BP_OCI_VERSION | \`${BP_OCI_VERSION_INPUT:-<unset>}\` |"
+            echo "| Duration | ${duration}s |"
+          } >> "$GITHUB_STEP_SUMMARY"

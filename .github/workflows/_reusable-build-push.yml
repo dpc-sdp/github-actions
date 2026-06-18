@@ -1,0 +1,371 @@
+name: _reusable-build-push
+
+on:
+  workflow_call:
+    inputs:
+      slipway-workspace-slug:
+        required: true
+        type: string
+      slipway-project-slug:
+        required: true
+        type: string
+      slipway-api-base-url:
+        required: true
+        type: string
+      slipway-pr-template-slug:
+        required: false
+        type: string
+        default: pr-ephemeral
+      slipway-pr-pipeline-slug:
+        required: false
+        type: string
+        default: pr-deploy
+      ecr-registry:
+        required: true
+        type: string
+      ecr-repository-path:
+        required: true
+        type: string
+      ecr-push-role-arn:
+        required: true
+        type: string
+      aws-region:
+        required: false
+        type: string
+        default: ap-southeast-4
+      paketo-builder:
+        required: false
+        type: string
+        default: paketobuildpacks/ubuntu-noble-builder
+      platform:
+        required: false
+        type: string
+        default: linux/arm64
+      runs-on:
+        required: false
+        type: string
+        default: ubuntu-24.04-arm
+      force-rebuild:
+        required: false
+        type: boolean
+        default: false
+    outputs:
+      version:
+        description: Prerelease version (manifest-version + short SHA)
+        value: ${{ jobs.compute-version.outputs.version }}
+      image-uri:
+        description: Mutable image URI pushed to ECR
+        value: ${{ jobs.compute-version.outputs.image-uri }}
+      immutable-image-uri:
+        description: Immutable image URI (v<version>-<suffix>.<sha>)
+        value: ${{ jobs.compute-version.outputs.immutable-image-uri }}
+      image-digest:
+        description: ECR image digest (sha256:...)
+        value: ${{ jobs.image-build.outputs.image-digest }}
+      release-id:
+        description: Slipway release id (FINAL)
+        value: ${{ jobs.slipway-release.outputs.release-id }}
+      environment-id:
+        description: Slipway PR environment id (PR builds only)
+        value: ${{ jobs.ensure-env.outputs.environment-id }}
+      env-url:
+        description: Slipway PR environment URL (PR builds only)
+        value: ${{ jobs.ensure-env.outputs.env-url }}
+
+jobs:
+  compute-version:
+    name: compute-version
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.compute.outputs.version }}
+      ecr-tag: ${{ steps.compute.outputs.ecr-tag }}
+      immutable-tag: ${{ steps.compute.outputs.immutable-tag }}
+      image-uri: ${{ steps.compute.outputs.image-uri }}
+      immutable-image-uri: ${{ steps.compute.outputs.immutable-image-uri }}
+      short-sha: ${{ steps.compute.outputs.short-sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: compute
+        name: Compute version and ECR tag
+        env:
+          ECR_REGISTRY: ${{ inputs.ecr-registry }}
+          ECR_REPOSITORY_PATH: ${{ inputs.ecr-repository-path }}
+          EVENT_NAME: ${{ github.event_name }}
+          PR_NUMBER: ${{ github.event.number }}
+          REF_NAME: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          FORCE_REBUILD: ${{ inputs.force-rebuild }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          short_sha="${SHA:0:7}"
+
+          if [[ -f .release-please-manifest.json ]]; then
+            manifest_version=$(jq -r '."."' .release-please-manifest.json)
+          else
+            manifest_version=$(jq -r '.version' package.json)
+          fi
+
+          if [[ -z "$manifest_version" || "$manifest_version" == "null" ]]; then
+            echo "::error::Could not determine manifest version"
+            exit 1
+          fi
+
+          version="${manifest_version}-${short_sha}"
+
+          case "$EVENT_NAME" in
+            pull_request)
+              ecr_tag="pr-${PR_NUMBER}"
+              suffix="pr-${PR_NUMBER}"
+              ;;
+            push|workflow_dispatch)
+              sanitized=$(echo "$REF_NAME" | sed 's|[^a-zA-Z0-9._-]|-|g')
+              ecr_tag="branch-${sanitized}"
+              suffix="branch-${sanitized}"
+              ;;
+            *)
+              echo "::error::Unsupported event: $EVENT_NAME"
+              exit 1
+              ;;
+          esac
+
+          # Force-rebuild produces a new manifest (different layer timestamps) for
+          # the same SHA. The immutable tag is per-content, so disambiguate with
+          # the run id + attempt to avoid an ECR ImageTagAlreadyExistsException.
+          if [[ "$FORCE_REBUILD" == "true" ]]; then
+            immutable_tag="v${manifest_version}-${suffix}.${short_sha}.r${RUN_ID}-${RUN_ATTEMPT}"
+          else
+            immutable_tag="v${manifest_version}-${suffix}.${short_sha}"
+          fi
+
+          image_uri="${ECR_REGISTRY}/${ECR_REPOSITORY_PATH}:${ecr_tag}"
+          immutable_image_uri="${ECR_REGISTRY}/${ECR_REPOSITORY_PATH}:${immutable_tag}"
+
+          {
+            echo "version=${version}"
+            echo "ecr-tag=${ecr_tag}"
+            echo "immutable-tag=${immutable_tag}"
+            echo "image-uri=${image_uri}"
+            echo "immutable-image-uri=${immutable_image_uri}"
+            echo "short-sha=${short_sha}"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### Build target"
+            echo ""
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| Version | \`${version}\` |"
+            echo "| Mutable tag | \`${ecr_tag}\` |"
+            echo "| Immutable tag | \`${immutable_tag}\` |"
+            echo "| Image URI | \`${image_uri}\` |"
+            echo "| Immutable image URI | \`${immutable_image_uri}\` |"
+            echo "| Short SHA | \`${short_sha}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  ensure-env:
+    name: ensure-env
+    if: github.event_name == 'pull_request'
+    needs: compute-version
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    outputs:
+      environment-id: ${{ steps.create.outputs.environment-id }}
+      env-url: ${{ steps.create.outputs.env-url }}
+      was-new: ${{ steps.create.outputs.was-new }}
+    steps:
+      - name: Setup Slipway CLI
+        uses: service-victoria/slipway-clients/setup-slipway@main
+        with:
+          api-base-url: ${{ inputs.slipway-api-base-url }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - id: create
+        name: Create or fetch PR environment
+        env:
+          WORKSPACE: ${{ inputs.slipway-workspace-slug }}
+          PROJECT: ${{ inputs.slipway-project-slug }}
+          TEMPLATE: ${{ inputs.slipway-pr-template-slug }}
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          set -euo pipefail
+          env_slug="pr-${PR_NUMBER}"
+          env_name="PR ${PR_NUMBER}"
+
+          response=$(slipway environments create \
+            --workspace-slug "$WORKSPACE" \
+            --project-slug "$PROJECT" \
+            --type EPHEMERAL \
+            --template-slug "$TEMPLATE" \
+            --name "$env_name" \
+            --slug "$env_slug" \
+            --output-format json)
+
+          env_id=$(echo "$response" | jq -r '.id')
+          env_url=$(echo "$response" | jq -r '.url // ""')
+          created_at=$(echo "$response" | jq -r '.createdAt // ""')
+          updated_at=$(echo "$response" | jq -r '.updatedAt // ""')
+
+          if [[ "$created_at" == "$updated_at" && -n "$created_at" ]]; then
+            was_new=true
+          else
+            was_new=false
+          fi
+
+          {
+            echo "environment-id=${env_id}"
+            echo "env-url=${env_url}"
+            echo "was-new=${was_new}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Setup environment (first creation only)
+        if: steps.create.outputs.was-new == 'true'
+        env:
+          WORKSPACE: ${{ inputs.slipway-workspace-slug }}
+          PROJECT: ${{ inputs.slipway-project-slug }}
+          ENV_ID: ${{ steps.create.outputs.environment-id }}
+        run: |
+          set -euo pipefail
+          slipway environments setup \
+            --workspace-slug "$WORKSPACE" \
+            --project-slug "$PROJECT" \
+            --id "$ENV_ID"
+
+      - name: Summary
+        env:
+          ENV_ID: ${{ steps.create.outputs.environment-id }}
+          ENV_URL: ${{ steps.create.outputs.env-url }}
+          WAS_NEW: ${{ steps.create.outputs.was-new }}
+        run: |
+          {
+            echo "### PR environment"
+            echo ""
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| Environment id | \`${ENV_ID}\` |"
+            echo "| URL | ${ENV_URL:-<pending>} |"
+            echo "| Freshly created | \`${WAS_NEW}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  image-build:
+    name: image-build
+    needs: compute-version
+    uses: ./.github/workflows/_reusable-image-build.yml
+    secrets: inherit
+    permissions:
+      id-token: write
+      contents: read
+    with:
+      primary-tag: ${{ needs.compute-version.outputs.ecr-tag }}
+      additional-tags: ${{ needs.compute-version.outputs.immutable-tag }}
+      probe-tag: ${{ needs.compute-version.outputs.immutable-tag }}
+      ecr-registry: ${{ inputs.ecr-registry }}
+      ecr-repository-path: ${{ inputs.ecr-repository-path }}
+      ecr-push-role-arn: ${{ inputs.ecr-push-role-arn }}
+      aws-region: ${{ inputs.aws-region }}
+      paketo-builder: ${{ inputs.paketo-builder }}
+      platform: ${{ inputs.platform }}
+      runs-on: ${{ inputs.runs-on }}
+
+  slipway-release:
+    name: slipway-release
+    needs: [compute-version, image-build]
+    uses: ./.github/workflows/_reusable-slipway-release.yml
+    secrets: inherit
+    with:
+      slipway-workspace-slug: ${{ inputs.slipway-workspace-slug }}
+      slipway-project-slug: ${{ inputs.slipway-project-slug }}
+      slipway-api-base-url: ${{ inputs.slipway-api-base-url }}
+      version: ${{ needs.compute-version.outputs.version }}
+      image-uri: ${{ needs.image-build.outputs.image-uri }}
+      image-digest: ${{ needs.image-build.outputs.image-digest }}
+      pr-number: ${{ github.event.number }}
+
+  deploy:
+    name: deploy
+    if: github.event_name == 'pull_request'
+    needs: [compute-version, ensure-env, slipway-release]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    concurrency:
+      group: pr-env-${{ github.event.number }}
+      cancel-in-progress: false
+    steps:
+      - name: Setup Slipway CLI
+        uses: service-victoria/slipway-clients/setup-slipway@main
+        with:
+          api-base-url: ${{ inputs.slipway-api-base-url }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve pipeline id
+        id: pipeline
+        env:
+          WORKSPACE: ${{ inputs.slipway-workspace-slug }}
+          PROJECT: ${{ inputs.slipway-project-slug }}
+          PIPELINE_SLUG: ${{ inputs.slipway-pr-pipeline-slug }}
+        run: |
+          set -euo pipefail
+          pipeline_id=$(slipway pipelines list \
+            --workspace-slug "$WORKSPACE" \
+            --project-slug "$PROJECT" \
+            --output-format json \
+            | jq -r --arg slug "$PIPELINE_SLUG" '.items[] | select(.slug == $slug) | .id')
+
+          if [[ -z "$pipeline_id" ]]; then
+            echo "::error::No pipeline found with slug '${PIPELINE_SLUG}' in ${WORKSPACE}/${PROJECT}"
+            exit 1
+          fi
+
+          echo "pipeline-id=${pipeline_id}" >> "$GITHUB_OUTPUT"
+
+      - name: Queue deploy
+        id: deploy
+        env:
+          WORKSPACE: ${{ inputs.slipway-workspace-slug }}
+          PROJECT: ${{ inputs.slipway-project-slug }}
+          RELEASE_ID: ${{ needs.slipway-release.outputs.release-id }}
+          ENV_ID: ${{ needs.ensure-env.outputs.environment-id }}
+          PIPELINE_ID: ${{ steps.pipeline.outputs.pipeline-id }}
+        run: |
+          set -euo pipefail
+          deploy_response=$(slipway releases deploy \
+            --workspace-slug "$WORKSPACE" \
+            --project-slug "$PROJECT" \
+            --id "$RELEASE_ID" \
+            --environment-id "$ENV_ID" \
+            --pipeline-id "$PIPELINE_ID" \
+            --output-format json || true)
+
+          deploy_id=$(echo "$deploy_response" | jq -r '.id // ""')
+          echo "deploy-id=${deploy_id}" >> "$GITHUB_OUTPUT"
+
+      - name: Summary
+        env:
+          IMAGE_URI: ${{ needs.compute-version.outputs.image-uri }}
+          VERSION: ${{ needs.compute-version.outputs.version }}
+          RELEASE_ID: ${{ needs.slipway-release.outputs.release-id }}
+          ENV_URL: ${{ needs.ensure-env.outputs.env-url }}
+          DEPLOY_ID: ${{ steps.deploy.outputs.deploy-id }}
+          API_BASE: ${{ inputs.slipway-api-base-url }}
+        run: |
+          {
+            echo "### Deploy queued"
+            echo ""
+            echo "_Note: the Slipway deploy CLI returns when the run is queued, not when it completes._"
+            echo ""
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| Image URI | \`${IMAGE_URI}\` |"
+            echo "| Version | \`${VERSION}\` |"
+            echo "| Release id | \`${RELEASE_ID}\` |"
+            echo "| Deploy id | \`${DEPLOY_ID:-<unknown>}\` |"
+            echo "| Environment URL | ${ENV_URL:-<pending>} |"
+            echo "| API | ${API_BASE} |"
+          } >> "$GITHUB_STEP_SUMMARY"
