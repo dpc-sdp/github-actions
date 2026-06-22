@@ -86,7 +86,12 @@ env:
   FTP_JIRA_EMAIL: ${{ secrets.TEST_FTP_JIRA_EMAIL }}
   FTP_JIRA_API_TOKEN: ${{ secrets.TEST_FTP_JIRA_API_TOKEN }}
   # Settings
-
+  DD_API_KEY: ${{ secrets.DD_API_KEY }}
+  DD_ENV: ci
+  DD_SERVICE: sdp-testing-playwright
+  DD_SITE: ap2.datadoghq.com
+  DD_CIVISIBILITY_AGENTLESS_ENABLED: 'true'
+  DD_CIVISIBILITY_GIT_UPLOAD_ENABLED: 'false'
 
 jobs:
   test_e2e_be:
@@ -119,6 +124,8 @@ jobs:
         name: Run Backend tests
         run: |
           npm run e2e:backend -- -g "${{ inputs.tags }}"
+        env:
+          NODE_OPTIONS: '-r dd-trace/ci/init'
       - uses: actions/upload-artifact@v6
         if: ${{ !cancelled() }}
         with:
