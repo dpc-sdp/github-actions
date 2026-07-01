@@ -121,11 +121,18 @@ jobs:
         run: |
           curl ${TEST_BE_BASE_URL} -s -S --max-time 1000 --write-out '%{http_code}' --output /dev/null;
       -
+        name: Enable Datadog tracing if available
+        shell: bash
+        run: |
+          if node -e "require.resolve('dd-trace/ci/init')"; then
+            echo "NODE_OPTIONS=-r dd-trace/ci/init" >> "$GITHUB_ENV"
+          else
+            echo "dd-trace not available; continuing without Datadog tracing"
+          fi
+      -
         name: Run Backend tests
         run: |
           npm run e2e:backend -- -g "${{ inputs.tags }}"
-        env:
-          NODE_OPTIONS: '-r dd-trace/ci/init'
       - uses: actions/upload-artifact@v6
         if: ${{ !cancelled() }}
         with:
