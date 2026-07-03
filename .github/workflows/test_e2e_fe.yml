@@ -89,7 +89,7 @@ env:
   # Settings
   GIT_BRANCH: ${{ github.event.pull_request && github.head_ref || github.ref_name }}
   GHA_RUN_ID: ${{ github.run_id }}
-  DD_API_KEY: ${{ secrets.DD_API_KEY }}
+  DD_API_KEY: ${{ secrets.TEST_DD_API_KEY }}
   DD_ENV: ci
   DD_SERVICE: sdp-testing-playwright
   DD_SITE: ap2.datadoghq.com
