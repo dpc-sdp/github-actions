@@ -83,14 +83,26 @@ jobs:
         id: show
         run: terraform show -no-color tfplan > tfplan.txt
 
-      - name: Render plan for PR comment
-        id: tf_output
+      - name: Determine plan comment strategy
+        id: plan_comment
         run: |
-          {
-            echo 'PLAN_OUTPUT<<EOF'
-            cat tfplan.txt
-            echo EOF
-          } >> "$GITHUB_OUTPUT"
+          plan_chars="$(wc -m < tfplan.txt)"
+          max_comment_chars=50000
+          is_long=false
+          if [ "$plan_chars" -gt "$max_comment_chars" ]; then
+            is_long=true
+          fi
+          echo "plan_chars=$plan_chars" >> "$GITHUB_OUTPUT"
+          echo "max_comment_chars=$max_comment_chars" >> "$GITHUB_OUTPUT"
+          echo "is_long=$is_long" >> "$GITHUB_OUTPUT"
+
+      - name: Upload long terraform plan
+        if: github.event_name == 'pull_request' && steps.plan_comment.outputs.is_long == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan-${{ github.run_id }}
+          path: tfplan.txt
+          retention-days: 7
 
 
       - uses: actions/github-script@v6
@@ -98,6 +110,17 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            const fs = require('node:fs')
+            const planOutput = fs.readFileSync('tfplan.txt', 'utf8')
+            const planChars = Number('${{ steps.plan_comment.outputs.plan_chars }}')
+            const maxCommentChars = Number('${{ steps.plan_comment.outputs.max_comment_chars }}')
+            const isLongPlan = '${{ steps.plan_comment.outputs.is_long }}' === 'true'
+            const planArtifactName = 'terraform-plan-${{ github.run_id }}'
+            const workflowRunUrl = '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+            const planSection = isLongPlan
+              ? `Terraform plan is too large to include in this comment (${planChars} chars, limit ${maxCommentChars}). Download the \`${planArtifactName}\` artifact from [this workflow run](${workflowRunUrl}).`
+              : `\`\`\`\n${planOutput}\n\`\`\``
+
             // 1. Retrieve existing bot comments for the PR
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
@@ -124,9 +147,7 @@ jobs:
 
             <details><summary>Show Plan</summary>
 
-            \`\`\`\n
-            ${{ steps.tf_output.outputs.PLAN_OUTPUT }}
-            \`\`\`
+            ${planSection}
 
             </details>
 
