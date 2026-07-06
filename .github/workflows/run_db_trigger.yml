@@ -182,16 +182,12 @@ jobs:
 
       - name: Verify database is available
         run: |
-          if docker exec --user 1000 "${{ steps.container.outputs.id }}" /usr/bin/mysql -e "show tables;" | grep -q users; then
+          if docker exec -i "${{ steps.container.outputs.id }}" /usr/bin/mysql -u root -p${{ secrets.DB_IMAGE_MARIADB_ROOT_PASSWORD }} -e "show tables;" drupal | grep -q users; then
             echo "Database import successfully"
           else
             echo "Database was not imported successfully"
             exit 1
           fi
-
-      - name: Update permissions of database files
-        run: docker exec "${{ steps.container.outputs.id }}" bash -c "chown -R mysql /var/lib/mysql && /bin/fix-permissions /var/lib/mysql" || true
-        continue-on-error: true
 
       - name: Gracefully shutdown the intermediary container
         run: docker exec -i "${{ steps.container.outputs.id }}" mysqladmin -u root -p${{ secrets.DB_IMAGE_MARIADB_ROOT_PASSWORD }} shutdown
