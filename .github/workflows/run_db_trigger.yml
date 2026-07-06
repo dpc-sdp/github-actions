@@ -209,7 +209,7 @@ jobs:
           fi
 
       - name: Download the DB image dockerfile
-        run: curl -o Dockerfile.seed https://raw.githubusercontent.com/dpc-sdp/github-actions/main/.docker/Dockerfile.seed
+        run: curl -o Dockerfile.seed https://raw.githubusercontent.com/dpc-sdp/github-actions/feature/mysql-db-image/.docker/Dockerfile.seed
 
       # Login against a Docker registry except on PR
       # https://github.com/docker/login-action
@@ -241,7 +241,7 @@ jobs:
         with:
           file: Dockerfile.seed
           context: .
-          build-args: DATA_DIR=${{ env.TMP_DATA_DIR }} BASE_IMAGE=ghcr.io/dpc-sdp/bay/mysql:6.x
+          build-args: DATA_DIR=${{ env.TMP_DATA_DIR }},BASE_IMAGE=ghcr.io/dpc-sdp/bay/mysql:6.x
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           platforms: linux/amd64,linux/arm64
           labels: ${{ steps.meta.outputs.labels }}
