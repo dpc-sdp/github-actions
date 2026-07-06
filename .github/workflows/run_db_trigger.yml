@@ -241,7 +241,9 @@ jobs:
         with:
           file: Dockerfile.seed
           context: .
-          build-args: DATA_DIR=${{ env.TMP_DATA_DIR }},BASE_IMAGE=ghcr.io/dpc-sdp/bay/mysql:6.x
+          build-args: |
+            DATA_DIR=${{ env.TMP_DATA_DIR }}
+            BASE_IMAGE=ghcr.io/dpc-sdp/bay/mysql:6.x
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           platforms: linux/amd64,linux/arm64
           labels: ${{ steps.meta.outputs.labels }}
