@@ -1,4 +1,5 @@
-FROM ghcr.io/dpc-sdp/bay/mariadb:6.x 
+ARG BASE_IMAGE=ghcr.io/dpc-sdp/bay/mariadb:6.x
+FROM $BASE_IMAGE
 
 ARG DATA_DIR=/tmp/data
 
