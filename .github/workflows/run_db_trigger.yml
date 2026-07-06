@@ -176,7 +176,9 @@ jobs:
         run: aws s3 cp ${{ inputs.s3_uri }} "${{ env.DB_FILE }}"
 
       - name: Import the database into the running container
-        run: cat "${{ env.DB_FILE }}" | docker exec -i "${{ steps.container.outputs.id }}" /usr/bin/mysql
+        run: |
+          echo 'create database if not exists drupal;' | docker exec -i "${{ steps.container.outputs.id }}" /usr/bin/mysql -u root -p${{ secrets.DB_IMAGE_MARIADB_ROOT_PASSWORD }}
+          cat "${{ env.DB_FILE }}" | docker exec -i "${{ steps.container.outputs.id }}" /usr/bin/mysql -u root -p${{ secrets.DB_IMAGE_MARIADB_ROOT_PASSWORD }} drupal
 
       - name: Verify database is available
         run: |
