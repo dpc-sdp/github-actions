@@ -8,9 +8,7 @@ COPY $DATA_DIR /var/lib/mysql
 USER root
 
 RUN chown -R mysql /var/lib/mysql \
-    && chgrp -R mysql /var/lib/mysql \
-    && find -L "/var/lib/mysql" -exec chgrp 0 {} + \
-    && find -L "/var/lib/mysql" -exec chmod g+rwX {} +
+    && chgrp -R mysql /var/lib/mysql
 
 USER mysql
 ENV MARIADB_INIT_WAIT_SECONDS=80
