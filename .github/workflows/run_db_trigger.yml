@@ -162,7 +162,7 @@ jobs:
         id: container
         run: |
           CONTAINER_ID=$(docker run -d -e "MYSQL_ROOT_PASSWORD=${{ secrets.DB_IMAGE_MARIADB_ROOT_PASSWORD }}" ghcr.io/dpc-sdp/bay/mysql:6.x)
-          timeout 60s docker exec --user 1000 -i "${CONTAINER_ID}" sh -c "until nc -z localhost 3306; do sleep 1; echo -n .; done; echo"
+          sleep 30
           echo "id=$CONTAINER_ID" >> $GITHUB_OUTPUT
 
       - name: Configure AWS actions
