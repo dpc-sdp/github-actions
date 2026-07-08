@@ -1,4 +1,5 @@
-FROM ghcr.io/dpc-sdp/bay/mariadb:6.x 
+ARG BASE_IMAGE=ghcr.io/dpc-sdp/bay/mariadb:6.x
+FROM $BASE_IMAGE
 
 ARG DATA_DIR=/tmp/data
 
@@ -7,8 +8,7 @@ COPY $DATA_DIR /var/lib/mysql
 USER root
 
 RUN chown -R mysql /var/lib/mysql \
-    && chgrp -R mysql /var/lib/mysql \
-    && /bin/fix-permissions /var/lib/mysql
+    && chgrp -R mysql /var/lib/mysql
 
 USER mysql
 ENV MARIADB_INIT_WAIT_SECONDS=80
