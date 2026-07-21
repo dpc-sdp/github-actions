@@ -24,11 +24,27 @@ jobs:
 
       - name: Create Pull Request
         run: |
-          gh pr create \
-            --title "Automated PR for release - ${{ inputs.branch_name }}" \
-            --body "${{ inputs.PR_message }}" \
+          existing_pr_url="$(gh pr list \
+            --state open \
             --base develop \
-            --head "${{ inputs.branch_name }}" \
-            --repo "${{ github.repository }}"
+            --head "$BRANCH_NAME" \
+            --repo "$GH_REPO" \
+            --json url \
+            --jq '.[0].url')"
+
+          if [[ -n "$existing_pr_url" ]]; then
+            echo "A pull request already exists: $existing_pr_url"
+            exit 0
+          fi
+
+          gh pr create \
+            --title "Automated PR for release - $BRANCH_NAME" \
+            --body "$PR_MESSAGE" \
+            --base develop \
+            --head "$BRANCH_NAME" \
+            --repo "$GH_REPO"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          BRANCH_NAME: ${{ inputs.branch_name }}
+          PR_MESSAGE: ${{ inputs.PR_message }}
