@@ -121,7 +121,7 @@ jobs:
           fi
 
       - name: Download the DB image dockerfile
-        run: curl -o Dockerfile.seed https://github.com/dpc-sdp/github-actions/blob/feat/PENG-1779--push-to-ecr/.docker/Dockerfile.seed
+        run: curl -o Dockerfile.seed https://raw.githubusercontent.com/dpc-sdp/github-actions/refs/heads/feat/PENG-1779--push-to-ecr/.docker/Dockerfile.seed
 
       # Login against a Docker registry except on PR
       # https://github.com/docker/login-action
