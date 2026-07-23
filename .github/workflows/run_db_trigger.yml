@@ -120,8 +120,8 @@ jobs:
             exit 1
           fi
 
-      - name: Download the DB image dockerfile
-        run: curl -o Dockerfile.seed https://raw.githubusercontent.com/dpc-sdp/github-actions/refs/heads/feat/PENG-1779--push-to-ecr/.docker/Dockerfile.seed
+#      - name: Download the DB image dockerfile
+#        run: curl -o Dockerfile.seed https://raw.githubusercontent.com/dpc-sdp/github-actions/refs/heads/feat/PENG-1779--push-to-ecr/.docker/Dockerfile.seed
 
       # Login against a Docker registry except on PR
       # https://github.com/docker/login-action
@@ -175,7 +175,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           file: Dockerfile.seed
-          context: .
+          context: ./.docker
           build-args: |
             DATA_DIR=${{ env.TMP_DATA_DIR }}
             DB_FILE=${{ env.DB_FILE }}

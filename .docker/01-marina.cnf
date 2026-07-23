@@ -1,0 +1,5 @@
+# Marina specific cli settings
+[mysql]
+# Enable maximal verbose tracing for the mysql CLI tool
+debug = d
+verbose
