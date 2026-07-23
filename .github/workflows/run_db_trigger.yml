@@ -30,12 +30,12 @@ on:
         default: ap-southeast-4
       ecr-registry:
         description: 'ECR registry'
-        required: true
+        required: false
         type: string
         default: 734101502693.dkr.ecr.ap-southeast-4.amazonaws.com
       ecr-push-role-arn:
         description: 'ECR push role ARN'
-        required: true
+        required: false
         type: string
         default: arn:aws:iam::734101502693:role/GithubEcrPushRole
 
