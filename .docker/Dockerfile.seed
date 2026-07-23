@@ -1,8 +1,11 @@
 FROM ghcr.io/dpc-sdp/bay/mariadb:6.x 
 
 ARG DATA_DIR=/tmp/data
+ARG DB_FILE=db.sql
 
 COPY $DATA_DIR /var/lib/mysql
+COPY $DB_FILE /var/tmp/db.sql
+COPY 01-marina.cnf /etc/mysql/conf.d/
 
 USER root
 
