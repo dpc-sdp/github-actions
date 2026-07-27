@@ -9,6 +9,8 @@ COPY 01-marina.cnf /etc/mysql/conf.d/
 
 USER root
 
+RUN fix-permissions /etc/mysql/conf.d/
+
 RUN chown -R mysql /var/lib/mysql \
     && chgrp -R mysql /var/lib/mysql \
     && /bin/fix-permissions /var/lib/mysql
