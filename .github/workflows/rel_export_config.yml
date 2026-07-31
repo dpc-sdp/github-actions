@@ -38,7 +38,7 @@ jobs:
           apk add --no-cache coreutils sudo
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@verbose
         with:
           php-version: "8.3"
           extensions: gd, igbinary, redis, pdo_mysql, zip
