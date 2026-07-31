@@ -35,7 +35,9 @@ jobs:
       - name: Install system dependencies
         run: |
           apk update
-          apk add --no-cache coreutils sudo
+          apk add --no-cache coreutils sudo          
+          # Force sudo to recognize and allow passwordless execution for root
+          echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
       - name: Set up PHP
         uses: shivammathur/setup-php@verbose
