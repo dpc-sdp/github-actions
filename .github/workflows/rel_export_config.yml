@@ -16,7 +16,7 @@ jobs:
     name: Export Config and Push to Branch
     runs-on: biggy
     container:
-      image: ghcr.io/dpc-sdp/bay/ci-builder:6.x
+      image: ghcr.io/dpc-sdp/bay/ci-builder:pr-429
 
     steps:
       - name: Checkout code
@@ -31,20 +31,6 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install system dependencies
-        run: |
-          apk update
-          apk add --no-cache coreutils sudo          
-          # Force sudo to recognize and allow passwordless execution for root
-          echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
-
-      - name: Set up PHP
-        uses: shivammathur/setup-php@verbose
-        with:
-          php-version: "8.3"
-          extensions: gd, igbinary, redis, pdo_mysql, zip
-          coverage: none
 
       - name: Uncomment database snapshot environment variable
         run: |
