@@ -55,7 +55,6 @@ jobs:
         env:
           DEPLOY_USER_EMAIL: ${{ secrets.DEPLOY_USER_EMAIL }}
           DEPLOY_USER_NAME: ${{ secrets.DEPLOY_USER_NAME }}
-          COMPOSER_IGNORE_PLATFORM_REQS: "1"
 
       - name: Notify completion
         if: success()
