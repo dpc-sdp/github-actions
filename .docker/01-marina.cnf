@@ -1,4 +1,0 @@
-# Marina specific cli settings
-[mysql]
-# Increase verbosity of CLI tool
-verbose

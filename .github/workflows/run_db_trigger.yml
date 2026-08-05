@@ -123,9 +123,6 @@ jobs:
       - name: Download the DB image dockerfile
         run: curl -o Dockerfile.seed https://raw.githubusercontent.com/dpc-sdp/github-actions/main/.docker/Dockerfile.seed
 
-      - name: Download Marina config file
-        run: curl -o 01-marina.cnf https://raw.githubusercontent.com/dpc-sdp/github-actions/main/.docker/01-marina.cnf
-
       # Login against a Docker registry except on PR
       # https://github.com/docker/login-action
       - name: Log into registry ghcr.io
