@@ -150,8 +150,8 @@ jobs:
           images: |
             ghcr.io/${{ env.IMAGE_NAME }}
             ${{ inputs.ecr-registry }}/marina-platform/databases/${{ github.event.repository.name }}/mariadb
-          flavor: |
-            latest=true
+          tags: |
+            type=raw,value=latest
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
