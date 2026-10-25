@@ -83,8 +83,8 @@ env:
   # Project secrets
   PREMIER_MAILGUN_DEV_TOKEN: ${{ secrets.TEST_PREMIER_MAILGUN_DEV_TOKEN }}
   # Keys
-  FTP_JIRA_EMAIL: ${{ secrets.TEST_FTP_JIRA_EMAIL }}
-  FTP_JIRA_API_TOKEN: ${{ secrets.TEST_FTP_JIRA_API_TOKEN }}
+  TEST_FTP_JIRA_EMAIL: ${{ secrets.TEST_FTP_JIRA_EMAIL }}
+  TEST_FTP_JIRA_API_TOKEN: ${{ secrets.TEST_FTP_JIRA_API_TOKEN }}
   # Settings
   DD_API_KEY: ${{ secrets.TEST_DD_API_KEY }}
   DD_ENV: ci
